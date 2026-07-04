@@ -1,6 +1,7 @@
 import { mkdir, writeFile } from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
+import sharp from 'sharp';
 import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
@@ -48,15 +49,19 @@ export async function POST(request: NextRequest) {
     const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET
     const apiKey = process.env.CLOUDINARY_API_KEY
     const apiSecret = process.env.CLOUDINARY_API_SECRET
+    const isVercel = process.env.VERCEL === '1'
+
+    console.log('Upload API env', {
+      cloudName: !!cloudName,
+      uploadPreset: !!uploadPreset,
+      apiKey: !!apiKey,
+      apiSecret: !!apiSecret,
+      isVercel,
+    })
 
     if (cloudName && (uploadPreset || (apiKey && apiSecret))) {
       try {
         const cloudUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`
-        console.log('Cloudinary upload active', {
-          cloudName: !!cloudName,
-          uploadPreset: !!uploadPreset,
-          signed: !!(apiKey && apiSecret),
-        })
 
         const fd = new FormData()
         // Create a Blob from the buffer so FormData can send it
@@ -85,19 +90,37 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: true, url: json.secure_url || json.url, name: json.public_id })
       } catch (err) {
         console.error('Upload error: cloudinary upload failed', err)
-        // fallthrough to local save as a fallback
+        return NextResponse.json({ success: false, error: 'Cloudinary upload failed', details: err instanceof Error ? err.message : String(err) }, { status: 500 })
       }
     }
 
+    if (isVercel) {
+      console.error('Upload error: Cloudinary not configured on Vercel or missing env vars')
+      return NextResponse.json({
+        success: false,
+        error: 'Cloudinary is not configured on Vercel. Set CLOUDINARY_CLOUD_NAME and CLOUDINARY_UPLOAD_PRESET or CLOUDINARY_API_KEY/CLOUDINARY_API_SECRET.',
+      }, { status: 500 })
+    }
+
     // Fallback: save to public/uploads (works on local dev)
-    const ext = path.extname(fileName) || path.extname((file as any).name || '') || '.png';
-    const safeName = `${type}-${Date.now()}-${crypto.randomUUID()}${ext}`;
+    // Convert to JPEG using sharp for consistent format and smaller file size
+    let jpgBuffer: Buffer;
+    try {
+      jpgBuffer = await sharp(buffer)
+        .jpeg({ quality: 85, mozjpeg: true })
+        .toBuffer();
+    } catch (sharpErr) {
+      console.error('Upload error: sharp conversion to JPEG failed', sharpErr);
+      return NextResponse.json({ success: false, error: 'Failed to convert image to JPEG' }, { status: 500 });
+    }
+
+    const safeName = `${type}-${Date.now()}-${crypto.randomUUID()}.jpg`;
     const uploadDir = path.join(process.cwd(), 'public', 'uploads');
 
     await mkdir(uploadDir, { recursive: true });
 
     const filePath = path.join(uploadDir, safeName);
-    await writeFile(filePath, buffer);
+    await writeFile(filePath, jpgBuffer);
 
     return NextResponse.json({
       success: true,
