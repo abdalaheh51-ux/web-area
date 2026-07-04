@@ -14,7 +14,11 @@ export const metadata: Metadata = {
   description: "نبني حضورك الرقمي.. من صفحة هبوط تخطف الأنظار، إلى نظام ERP يدير شركتك بالكامل.",
   keywords: ["تصميم مواقع", "ERP", "متجر إلكتروني", "صفحة هبوط", "لوحة تحكم", "تطوير ويب"],
   authors: [{ name: "Web Area" }],
-  icons: { icon: "/logo.png" },
+  icons: {
+    icon: [{ url: "/logo.png", type: "image/png", sizes: "any" }],
+    shortcut: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
