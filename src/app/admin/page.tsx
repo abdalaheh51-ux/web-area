@@ -7,9 +7,10 @@ import {
   LayoutDashboard, FileText, MessageSquare, Package,
   Upload, Loader2,
   Check, X, Trash2, Clock, Mail, Phone, Calendar,
-  ArrowLeft, ArrowRight, ChevronDown, Search, Filter,
+  ArrowLeft, ArrowRight, ChevronDown, Search,
   Home, LogOut, User as UserIcon, Sun, Moon, Languages,
-  Plus, Edit3, Eye, EyeOff
+  Plus, Edit3, Eye, EyeOff, Globe, DollarSign,
+  Briefcase, Zap, Link, StickyNote, ChevronUp
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -827,7 +828,7 @@ export default function AdminDashboard() {
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
           ) : tab === 'requests' ? (
-            /* Requests Tab */
+            /* Requests Tab — redesigned for clarity */
             <div className="space-y-4">
               {/* Filters */}
               <div className="flex flex-col sm:flex-row gap-3 mb-4">
@@ -840,16 +841,19 @@ export default function AdminDashboard() {
                     className={isRtl ? 'pr-10' : 'pl-10'}
                   />
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   {['all', 'new', 'contacted', 'quoted', 'closed'].map(s => (
                     <button
                       key={s}
                       onClick={() => setStatusFilter(s)}
                       className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
-                        statusFilter === s ? 'bg-primary text-primary-foreground' : 'bg-muted/50 text-muted-foreground hover:bg-muted'
+                        statusFilter === s ? 'bg-primary text-primary-foreground shadow-sm' : 'bg-muted/50 text-muted-foreground hover:bg-muted'
                       }`}
                     >
                       {s === 'all' ? (dir === 'rtl' ? 'الكل' : 'All') : statusLabels[s]}
+                      {s !== 'all' && (
+                        <span className="ms-1.5 opacity-60">{requests.filter(r => r.status === s).length}</span>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -857,157 +861,301 @@ export default function AdminDashboard() {
 
               {filteredRequests.length === 0 ? (
                 <Card className="frosted-card">
-                  <CardContent className="p-10 text-center">
-                    <Package className="w-12 h-12 mx-auto text-muted-foreground/30 mb-3" />
-                    <p className="text-muted-foreground">{dir === 'rtl' ? 'لا توجد طلبات' : 'No requests found'}</p>
+                  <CardContent className="p-14 text-center">
+                    <Package className="w-14 h-14 mx-auto text-muted-foreground/20 mb-4" />
+                    <p className="text-muted-foreground font-medium">{dir === 'rtl' ? 'لا توجد طلبات' : 'No requests found'}</p>
+                    <p className="text-xs text-muted-foreground/60 mt-1">{dir === 'rtl' ? 'جرب تغيير الفلتر أو البحث' : 'Try changing the filter or search'}</p>
                   </CardContent>
                 </Card>
               ) : (
-                filteredRequests.map((req) => (
-                  <Card key={req.id} className="frosted-card overflow-hidden">
-                    <CardContent className="p-0">
-                      {/* Header */}
-                      <div
-                        className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/20 transition-colors"
-                        onClick={() => setExpandedId(expandedId === req.id ? null : req.id)}
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-amber-500 text-white font-bold shrink-0">
-                            {req.name.charAt(0).toUpperCase()}
-                          </div>
-                          <div className="min-w-0">
-                            <p className="font-semibold text-sm truncate">{req.name}</p>
-                            <p className="text-xs text-muted-foreground truncate">{req.referenceNumber} · {formatDate(req.createdAt)}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <Badge className={statusColors[req.status] || statusColors.new}>
-                            {statusLabels[req.status] || req.status}
-                          </Badge>
-                          <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${expandedId === req.id ? 'rotate-180' : ''}`} />
-                        </div>
-                      </div>
+                filteredRequests.map((req) => {
+                  // Parse JSON fields once
+                  let parsedSites: { url: string }[] = []
+                  let parsedFeatures: Record<string, unknown> = {}
+                  try { parsedSites = JSON.parse(req.referenceSites) } catch {}
+                  try { parsedFeatures = JSON.parse(req.features) } catch {}
 
-                      {/* Expanded content */}
-                      <AnimatePresence>
-                        {expandedId === req.id && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.3 }}
-                            className="overflow-hidden"
-                          >
-                            <div className="px-4 pb-4 pt-2 border-t border-border/30 space-y-3">
-                              {/* Contact info */}
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                                <div className="flex items-center gap-2">
-                                  <Mail className="w-3.5 h-3.5 text-muted-foreground" />
-                                  <a href={`mailto:${req.email}`} className="text-blue-500 hover:underline truncate">{req.email}</a>
-                                </div>
-                                {req.phone && (
-                                  <div className="flex items-center gap-2">
-                                    <Phone className="w-3.5 h-3.5 text-muted-foreground" />
-                                    <a href={`tel:${req.phone}`} className="text-blue-500 hover:underline" dir="ltr">{req.phone}</a>
-                                  </div>
-                                )}
-                                <div className="flex items-center gap-2">
-                                  <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
-                                  <span>{req.contactMethod}</span>
-                                </div>
-                                {req.bestTime && (
-                                  <div className="flex items-center gap-2">
-                                    <Clock className="w-3.5 h-3.5 text-muted-foreground" />
-                                    <span>{req.bestTime}</span>
-                                  </div>
-                                )}
-                              </div>
+                  // Flatten features to readable chips
+                  const featureChips: string[] = []
+                  if (parsedFeatures && typeof parsedFeatures === 'object') {
+                    Object.entries(parsedFeatures).forEach(([key, val]) => {
+                      if (val === true) featureChips.push(key)
+                      else if (Array.isArray(val)) val.forEach((v: unknown) => featureChips.push(String(v)))
+                      else if (val && val !== false) featureChips.push(`${key}: ${val}`)
+                    })
+                  }
 
-                              {/* Industry & description */}
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <div className="p-2.5 rounded-lg bg-muted/20">
-                                  <p className="text-[10px] text-muted-foreground mb-0.5">{dir === 'rtl' ? 'المجال' : 'Industry'}</p>
-                                  <p className="text-xs font-medium">{req.industry}</p>
-                                </div>
-                                {req.budget && (
-                                  <div className="p-2.5 rounded-lg bg-muted/20">
-                                    <p className="text-[10px] text-muted-foreground mb-0.5">{dir === 'rtl' ? 'الميزانية' : 'Budget'}</p>
-                                    <p className="text-xs font-medium">{req.budget}</p>
-                                  </div>
-                                )}
-                                {req.timeline && (
-                                  <div className="p-2.5 rounded-lg bg-muted/20">
-                                    <p className="text-[10px] text-muted-foreground mb-0.5">{dir === 'rtl' ? 'الموعد' : 'Timeline'}</p>
-                                    <p className="text-xs font-medium">{req.timeline}</p>
-                                  </div>
-                                )}
-                                {req.description && (
-                                  <div className="p-2.5 rounded-lg bg-muted/20">
-                                    <p className="text-[10px] text-muted-foreground mb-0.5">{dir === 'rtl' ? 'الوصف' : 'Description'}</p>
-                                    <p className="text-xs">{req.description}</p>
-                                  </div>
-                                )}
-                              </div>
+                  const isExpanded = expandedId === req.id
 
-                              {/* Reference sites & features (JSON) */}
-                              {(() => {
-                                try {
-                                  const sites = JSON.parse(req.referenceSites)
-                                  const features = JSON.parse(req.features)
-                                  return (
-                                    <div className="space-y-2">
-                                      {Array.isArray(sites) && sites.length > 0 && (
-                                        <div className="p-2.5 rounded-lg bg-muted/20">
-                                          <p className="text-[10px] text-muted-foreground mb-1">{dir === 'rtl' ? 'المواقع المرجعية' : 'Reference Sites'}</p>
-                                          <div className="space-y-1">
-                                            {sites.map((s: { url: string }, i: number) => (
-                                              <p key={i} className="text-xs text-blue-500 truncate" dir="ltr">{i + 1}. {s.url}</p>
-                                            ))}
-                                          </div>
-                                        </div>
-                                      )}
-                                      {features && typeof features === 'object' && (
-                                        <div className="p-2.5 rounded-lg bg-muted/20">
-                                          <p className="text-[10px] text-muted-foreground mb-1">{dir === 'rtl' ? 'المتطلبات' : 'Requirements'}</p>
-                                          <pre className="text-[10px] text-muted-foreground whitespace-pre-wrap">{JSON.stringify(features, null, 2)}</pre>
-                                        </div>
-                                      )}
-                                    </div>
-                                  )
-                                } catch { return null }
-                              })()}
+                  return (
+                    <Card key={req.id} className={`frosted-card overflow-hidden border transition-all duration-200 ${
+                      req.status === 'new' ? 'border-blue-500/30' :
+                      req.status === 'contacted' ? 'border-amber-500/20' :
+                      req.status === 'quoted' ? 'border-violet-500/20' :
+                      'border-border/30'
+                    }`}>
+                      <CardContent className="p-0">
 
-                              {/* Actions */}
-                              <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border/30">
-                                <span className="text-xs text-muted-foreground">{dir === 'rtl' ? 'تغيير الحالة:' : 'Change status:'}</span>
-                                {['new', 'contacted', 'quoted', 'closed'].map(s => (
-                                  <button
-                                    key={s}
-                                    onClick={() => updateRequestStatus(req.id, s)}
-                                    className={`px-2.5 py-1 rounded-lg text-[10px] font-medium transition-all ${
-                                      req.status === s ? statusColors[s] : 'bg-muted/30 text-muted-foreground hover:bg-muted/50'
-                                    }`}
-                                  >
-                                    {statusLabels[s]}
-                                  </button>
-                                ))}
-                                <div className="flex-1" />
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="text-destructive hover:bg-destructive/10"
-                                  onClick={() => deleteRequest(req.id)}
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </Button>
+                        {/* ── Card Header ──────────────────────────────── */}
+                        <div
+                          className="flex items-center justify-between gap-3 p-5 cursor-pointer hover:bg-muted/10 transition-colors"
+                          onClick={() => setExpandedId(isExpanded ? null : req.id)}
+                        >
+                          {/* Avatar + Name */}
+                          <div className="flex items-center gap-4 min-w-0">
+                            <div className={`flex items-center justify-center w-12 h-12 rounded-2xl text-white font-bold text-lg shrink-0 shadow-md ${
+                              req.status === 'new' ? 'bg-gradient-to-br from-blue-500 to-blue-600' :
+                              req.status === 'contacted' ? 'bg-gradient-to-br from-amber-500 to-orange-500' :
+                              req.status === 'quoted' ? 'bg-gradient-to-br from-violet-500 to-purple-600' :
+                              'bg-gradient-to-br from-emerald-500 to-teal-600'
+                            }`}>
+                              {req.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-bold text-base leading-tight truncate">{req.name}</p>
+                              <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5">
+                                <span className="text-xs text-muted-foreground font-mono">{req.referenceNumber}</span>
+                                <span className="text-muted-foreground/40 text-xs">·</span>
+                                <span className="text-xs text-muted-foreground">{formatDate(req.createdAt)}</span>
+                                <span className="text-muted-foreground/40 text-xs">·</span>
+                                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <Briefcase className="w-3 h-3" />{req.industry}
+                                </span>
                               </div>
                             </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </CardContent>
-                  </Card>
-                ))
+                          </div>
+
+                          {/* Status badge + chevron */}
+                          <div className="flex items-center gap-3 shrink-0">
+                            <Badge className={`${statusColors[req.status] || statusColors.new} text-xs px-3 py-1`}>
+                              {statusLabels[req.status] || req.status}
+                            </Badge>
+                            <div className={`w-7 h-7 rounded-lg bg-muted/40 flex items-center justify-center transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
+                              <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Quick info strip (always visible) */}
+                        <div className="px-5 pb-4 flex flex-wrap gap-x-5 gap-y-1.5 border-t border-border/20 pt-3">
+                          <a href={`mailto:${req.email}`} className="flex items-center gap-1.5 text-xs text-blue-500 hover:underline">
+                            <Mail className="w-3.5 h-3.5" />{req.email}
+                          </a>
+                          {req.phone && (
+                            <a href={`tel:${req.phone}`} className="flex items-center gap-1.5 text-xs text-blue-500 hover:underline" dir="ltr">
+                              <Phone className="w-3.5 h-3.5" />{req.phone}
+                            </a>
+                          )}
+                          {req.budget && (
+                            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <DollarSign className="w-3.5 h-3.5" />{req.budget}
+                            </span>
+                          )}
+                          {req.timeline && (
+                            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <Clock className="w-3.5 h-3.5" />{req.timeline}
+                            </span>
+                          )}
+                        </div>
+
+                        {/* ── Expanded Section ─────────────────────────── */}
+                        <AnimatePresence>
+                          {isExpanded && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.25, ease: 'easeInOut' }}
+                              className="overflow-hidden"
+                            >
+                              <div className="px-5 pb-5 pt-1 border-t border-border/20 space-y-5">
+
+                                {/* ── Contact Info ── */}
+                                <div>
+                                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2.5">
+                                    {dir === 'rtl' ? '📞 بيانات التواصل' : '📞 Contact Info'}
+                                  </p>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                    <div className="flex items-center gap-2.5 p-3 rounded-xl bg-muted/20 border border-border/30">
+                                      <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
+                                        <Mail className="w-4 h-4 text-blue-500" />
+                                      </div>
+                                      <div className="min-w-0">
+                                        <p className="text-[10px] text-muted-foreground mb-0.5">{dir === 'rtl' ? 'البريد الإلكتروني' : 'Email'}</p>
+                                        <a href={`mailto:${req.email}`} className="text-xs font-medium text-blue-500 hover:underline truncate block">{req.email}</a>
+                                      </div>
+                                    </div>
+                                    {req.phone && (
+                                      <div className="flex items-center gap-2.5 p-3 rounded-xl bg-muted/20 border border-border/30">
+                                        <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
+                                          <Phone className="w-4 h-4 text-emerald-500" />
+                                        </div>
+                                        <div>
+                                          <p className="text-[10px] text-muted-foreground mb-0.5">{dir === 'rtl' ? 'الهاتف' : 'Phone'}</p>
+                                          <a href={`tel:${req.phone}`} className="text-xs font-medium text-emerald-500 hover:underline" dir="ltr">{req.phone}</a>
+                                        </div>
+                                      </div>
+                                    )}
+                                    <div className="flex items-center gap-2.5 p-3 rounded-xl bg-muted/20 border border-border/30">
+                                      <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center shrink-0">
+                                        <Calendar className="w-4 h-4 text-violet-500" />
+                                      </div>
+                                      <div>
+                                        <p className="text-[10px] text-muted-foreground mb-0.5">{dir === 'rtl' ? 'طريقة التواصل' : 'Contact Method'}</p>
+                                        <p className="text-xs font-medium">{req.contactMethod}</p>
+                                      </div>
+                                    </div>
+                                    {req.bestTime && (
+                                      <div className="flex items-center gap-2.5 p-3 rounded-xl bg-muted/20 border border-border/30">
+                                        <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
+                                          <Clock className="w-4 h-4 text-amber-500" />
+                                        </div>
+                                        <div>
+                                          <p className="text-[10px] text-muted-foreground mb-0.5">{dir === 'rtl' ? 'أفضل وقت' : 'Best Time'}</p>
+                                          <p className="text-xs font-medium">{req.bestTime}</p>
+                                        </div>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+
+                                {/* ── Project Info ── */}
+                                <div>
+                                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2.5">
+                                    {dir === 'rtl' ? '📋 تفاصيل المشروع' : '📋 Project Details'}
+                                  </p>
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                                    <div className="p-3 rounded-xl bg-muted/20 border border-border/30">
+                                      <div className="flex items-center gap-1.5 mb-1">
+                                        <Briefcase className="w-3.5 h-3.5 text-muted-foreground" />
+                                        <p className="text-[10px] text-muted-foreground">{dir === 'rtl' ? 'المجال' : 'Industry'}</p>
+                                      </div>
+                                      <p className="text-sm font-semibold">{req.industry}</p>
+                                    </div>
+                                    {req.budget && (
+                                      <div className="p-3 rounded-xl bg-muted/20 border border-border/30">
+                                        <div className="flex items-center gap-1.5 mb-1">
+                                          <DollarSign className="w-3.5 h-3.5 text-muted-foreground" />
+                                          <p className="text-[10px] text-muted-foreground">{dir === 'rtl' ? 'الميزانية' : 'Budget'}</p>
+                                        </div>
+                                        <p className="text-sm font-semibold">{req.budget}</p>
+                                      </div>
+                                    )}
+                                    {req.timeline && (
+                                      <div className="p-3 rounded-xl bg-muted/20 border border-border/30">
+                                        <div className="flex items-center gap-1.5 mb-1">
+                                          <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                                          <p className="text-[10px] text-muted-foreground">{dir === 'rtl' ? 'المدة' : 'Timeline'}</p>
+                                        </div>
+                                        <p className="text-sm font-semibold">{req.timeline}</p>
+                                      </div>
+                                    )}
+                                  </div>
+                                  {req.description && (
+                                    <div className="mt-2.5 p-3.5 rounded-xl bg-muted/20 border border-border/30">
+                                      <p className="text-[10px] text-muted-foreground mb-1.5">{dir === 'rtl' ? 'وصف المشروع' : 'Project Description'}</p>
+                                      <p className="text-sm leading-relaxed">{req.description}</p>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {/* ── Features as chips ── */}
+                                {featureChips.length > 0 && (
+                                  <div>
+                                    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2.5">
+                                      <Zap className="w-3 h-3 inline me-1" />
+                                      {dir === 'rtl' ? 'المتطلبات والمميزات' : 'Features & Requirements'}
+                                    </p>
+                                    <div className="flex flex-wrap gap-2">
+                                      {featureChips.map((chip, i) => (
+                                        <span
+                                          key={i}
+                                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium bg-primary/8 text-primary border border-primary/15"
+                                        >
+                                          <Check className="w-3 h-3" />
+                                          {chip}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* ── Reference Sites ── */}
+                                {parsedSites.length > 0 && (
+                                  <div>
+                                    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2.5">
+                                      <Globe className="w-3 h-3 inline me-1" />
+                                      {dir === 'rtl' ? 'المواقع المرجعية' : 'Reference Sites'}
+                                    </p>
+                                    <div className="space-y-2">
+                                      {parsedSites.map((s, i) => (
+                                        <a
+                                          key={i}
+                                          href={s.url.startsWith('http') ? s.url : `https://${s.url}`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="flex items-center gap-2.5 p-3 rounded-xl bg-muted/20 border border-border/30 hover:border-blue-500/30 hover:bg-blue-500/5 transition-colors group"
+                                          dir="ltr"
+                                        >
+                                          <div className="w-6 h-6 rounded-md bg-blue-500/10 flex items-center justify-center shrink-0">
+                                            <Link className="w-3.5 h-3.5 text-blue-500" />
+                                          </div>
+                                          <span className="text-xs text-blue-500 truncate group-hover:underline">{s.url}</span>
+                                        </a>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* ── Admin Notes ── */}
+                                {req.adminNotes && (
+                                  <div>
+                                    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2.5">
+                                      <StickyNote className="w-3 h-3 inline me-1" />
+                                      {dir === 'rtl' ? 'ملاحظات الأدمن' : 'Admin Notes'}
+                                    </p>
+                                    <div className="p-3.5 rounded-xl bg-amber-500/5 border border-amber-500/20">
+                                      <p className="text-sm text-amber-700 dark:text-amber-300 leading-relaxed">{req.adminNotes}</p>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* ── Status Actions ── */}
+                                <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-border/20">
+                                  <span className="text-xs text-muted-foreground font-medium me-1">{dir === 'rtl' ? 'الحالة:' : 'Status:'}</span>
+                                  {['new', 'contacted', 'quoted', 'closed'].map(s => (
+                                    <button
+                                      key={s}
+                                      onClick={() => updateRequestStatus(req.id, s)}
+                                      className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all border ${
+                                        req.status === s
+                                          ? statusColors[s] + ' shadow-sm'
+                                          : 'bg-transparent border-border/30 text-muted-foreground hover:bg-muted/50'
+                                      }`}
+                                    >
+                                      {statusLabels[s]}
+                                    </button>
+                                  ))}
+                                  <div className="flex-1" />
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-destructive hover:bg-destructive/10 hover:text-destructive gap-1.5"
+                                    onClick={() => deleteRequest(req.id)}
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                    {dir === 'rtl' ? 'حذف' : 'Delete'}
+                                  </Button>
+                                </div>
+
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </CardContent>
+                    </Card>
+                  )
+                })
               )}
             </div>
           ) : tab === 'comments' ? (
