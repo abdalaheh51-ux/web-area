@@ -84,6 +84,7 @@ function PortfolioForm({ item, onSave, onCancel, dir }: {
   onCancel: () => void
   dir: 'rtl' | 'ltr'
 }) {
+  const { toast } = useToast()
   const [formTab, setFormTab] = useState<'basic' | 'details' | 'images'>('basic')
   const [uploadingField, setUploadingField] = useState<string | null>(null)
   const [formData, setFormData] = useState({
@@ -147,9 +148,23 @@ function PortfolioForm({ item, onSave, onCancel, dir }: {
       const data = await res.json()
       if (data.success) {
         update(field, data.url)
+        toast({
+          title: dir === 'rtl' ? 'تم رفع الصورة بنجاح' : 'Image uploaded successfully',
+          description: dir === 'rtl' ? 'تم حفظ الصورة وربطها بالحقول المطلوبة' : 'The image was saved and linked successfully',
+        })
+      } else {
+        toast({
+          title: dir === 'rtl' ? 'فشل رفع الصورة' : 'Image upload failed',
+          description: data.error || (dir === 'rtl' ? 'حدث خطأ أثناء رفع الصورة' : 'Something went wrong while uploading the image'),
+          variant: 'destructive',
+        })
       }
     } catch {
-      // ignore
+      toast({
+        title: dir === 'rtl' ? 'فشل رفع الصورة' : 'Image upload failed',
+        description: dir === 'rtl' ? 'تحقق من الملف وحاول مرة أخرى' : 'Please check the file and try again',
+        variant: 'destructive',
+      })
     } finally {
       setUploadingField(null)
     }
