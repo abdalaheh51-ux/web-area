@@ -94,15 +94,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (isVercel) {
-      console.error('Upload error: Cloudinary not configured on Vercel or missing env vars')
-      return NextResponse.json({
-        success: false,
-        error: 'Cloudinary is not configured on Vercel. Set CLOUDINARY_CLOUD_NAME and CLOUDINARY_UPLOAD_PRESET or CLOUDINARY_API_KEY/CLOUDINARY_API_SECRET.',
-      }, { status: 500 })
-    }
+    // Fallback: save to public/uploads
 
-    // Fallback: save to public/uploads (works on local dev)
     // Convert to JPEG using sharp for consistent format and smaller file size
     let jpgBuffer: Buffer;
     try {
