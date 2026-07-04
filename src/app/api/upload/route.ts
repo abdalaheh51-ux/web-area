@@ -42,6 +42,54 @@ export async function POST(request: NextRequest) {
 
     const buffer = Buffer.from(bytes)
 
+    // If Cloudinary is configured, upload there. Support unsigned (upload_preset)
+    // or signed (api_key + api_secret). Otherwise save to local public/uploads.
+    const cloudName = process.env.CLOUDINARY_CLOUD_NAME
+    const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET
+    const apiKey = process.env.CLOUDINARY_API_KEY
+    const apiSecret = process.env.CLOUDINARY_API_SECRET
+
+    if (cloudName && (uploadPreset || (apiKey && apiSecret))) {
+      try {
+        const cloudUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`
+        console.log('Cloudinary upload active', {
+          cloudName: !!cloudName,
+          uploadPreset: !!uploadPreset,
+          signed: !!(apiKey && apiSecret),
+        })
+
+        const fd = new FormData()
+        // Create a Blob from the buffer so FormData can send it
+        const blob = new Blob([buffer], { type: fileType || 'application/octet-stream' })
+        fd.append('file', blob, fileName || `${type}-${Date.now()}.png`)
+
+        if (uploadPreset) {
+          fd.append('upload_preset', uploadPreset)
+        } else {
+          // Signed upload: add timestamp, api_key and signature
+          const timestamp = Math.floor(Date.now() / 1000)
+          const toSign = `timestamp=${timestamp}`
+          const signature = crypto.createHash('sha1').update(toSign + apiSecret).digest('hex')
+          fd.append('api_key', apiKey as string)
+          fd.append('timestamp', String(timestamp))
+          fd.append('signature', signature)
+        }
+
+        const resp = await fetch(cloudUrl, { method: 'POST', body: fd })
+        const json = await resp.json()
+        if (!resp.ok) {
+          console.error('Cloudinary upload failed', { status: resp.status, body: json })
+          return NextResponse.json({ success: false, error: 'Cloudinary upload failed', details: json }, { status: 500 })
+        }
+
+        return NextResponse.json({ success: true, url: json.secure_url || json.url, name: json.public_id })
+      } catch (err) {
+        console.error('Upload error: cloudinary upload failed', err)
+        // fallthrough to local save as a fallback
+      }
+    }
+
+    // Fallback: save to public/uploads (works on local dev)
     const ext = path.extname(fileName) || path.extname((file as any).name || '') || '.png';
     const safeName = `${type}-${Date.now()}-${crypto.randomUUID()}${ext}`;
     const uploadDir = path.join(process.cwd(), 'public', 'uploads');

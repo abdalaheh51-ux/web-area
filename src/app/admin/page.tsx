@@ -153,16 +153,18 @@ function PortfolioForm({ item, onSave, onCancel, dir }: {
           description: dir === 'rtl' ? 'تم حفظ الصورة وربطها بالحقول المطلوبة' : 'The image was saved and linked successfully',
         })
       } else {
+        const details = data.details ? ` (${JSON.stringify(data.details)})` : ''
         toast({
           title: dir === 'rtl' ? 'فشل رفع الصورة' : 'Image upload failed',
-          description: data.error || (dir === 'rtl' ? 'حدث خطأ أثناء رفع الصورة' : 'Something went wrong while uploading the image'),
+          description:
+            (data.error || (dir === 'rtl' ? 'حدث خطأ أثناء رفع الصورة' : 'Something went wrong while uploading the image')) + details,
           variant: 'destructive',
         })
       }
-    } catch {
+    } catch (error) {
       toast({
         title: dir === 'rtl' ? 'فشل رفع الصورة' : 'Image upload failed',
-        description: dir === 'rtl' ? 'تحقق من الملف وحاول مرة أخرى' : 'Please check the file and try again',
+        description: `${dir === 'rtl' ? 'تحقق من الملف وحاول مرة أخرى' : 'Please check the file and try again'}${error instanceof Error ? `: ${error.message}` : ''}`,
         variant: 'destructive',
       })
     } finally {
