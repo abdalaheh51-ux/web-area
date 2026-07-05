@@ -15,9 +15,12 @@ export const metadata: Metadata = {
   keywords: ["تصميم مواقع", "ERP", "متجر إلكتروني", "صفحة هبوط", "لوحة تحكم", "تطوير ويب"],
   authors: [{ name: "Web Area" }],
   icons: {
-    icon: [{ url: "/logo.png", type: "image/png", sizes: "any" }],
-    shortcut: "/logo.png",
-    apple: "/logo.png",
+    icon: [
+      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
+    ],
+    shortcut: "/favicon-32x32.png",
+    apple: "/apple-touch-icon.png",
   },
 };
 
