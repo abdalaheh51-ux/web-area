@@ -298,13 +298,13 @@ export default function GrowthSpectrum() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: true, margin: '-50px' }}
-            className="relative"
+            className="relative pr-10"
           >
             {/* Timeline vertical line */}
-            <div className="absolute right-[22px] top-0 bottom-0 w-0.5 rounded-full bg-gradient-to-b from-blue-500 via-blue-600 to-amber-500 opacity-40" />
+            <div className="absolute right-6 top-0 bottom-0 w-0.5 rounded-full bg-gradient-to-b from-blue-500 via-blue-600 to-amber-500 opacity-40" />
 
             {/* Animated progress line */}
-            <div className="absolute right-[22px] top-0 w-0.5 rounded-full overflow-hidden" style={{ height: '100%' }}>
+            <div className="absolute right-6 top-0 w-0.5 rounded-full overflow-hidden" style={{ height: '100%' }}>
               <motion.div
                 initial={{ height: '0%' }}
                 whileInView={{ height: '100%' }}
@@ -327,7 +327,7 @@ export default function GrowthSpectrum() {
                     style={{ backgroundColor: stage.accentColor }}
                   />
 
-                  <div className="flex-1">
+                  <div className="flex-1 z-10">
                     <StageCard stage={stage} />
                   </div>
                 </div>
