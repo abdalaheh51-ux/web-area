@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   keywords: ["تصميم مواقع", "ERP", "متجر إلكتروني", "صفحة هبوط", "لوحة تحكم", "تطوير ويب"],
   authors: [{ name: "Web Area" }],
   verification: {
-    google: "googlee929da18687e1fb1",
+    google: "googlebe4495aff1425441",
   },
   icons: {
     icon: "/favicon-a.png",
@@ -29,7 +29,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <head>
-        <meta name="google-site-verification" content="googlee929da18687e1fb1" />
+        <meta name="google-site-verification" content="googlebe4495aff1425441" />
         <meta name="google-site-verification" content="iGwlgHtt_QDCyLUwaLWHuC5k5TCtjjCuhvlUOCQRN3U" />
         {/* Google Analytics */}
         <Script
