@@ -33,6 +33,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <head>
         <meta name="google-site-verification" content="googlee929da18687e1fb1" />
+        <meta name="google-site-verification" content="iGwlgHtt_QDCyLUwaLWHuC5k5TCtjjCuhvlUOCQRN3U" />
         {/* Google Analytics */}
         <Script
           src="https://www.googletagmanager.com/gtag/js?id=G-YP1VFPTNZP"
