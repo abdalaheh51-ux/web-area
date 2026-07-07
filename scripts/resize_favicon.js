@@ -28,6 +28,13 @@ async function generateFavicons() {
       .toFile(path.join(publicDir, 'favicon-32x32.png'));
     console.log('Generated favicon-32x32.png');
 
+    // 2b. favicon-a.png (48x48) - Google preferred multiple of 48
+    await sharp(logoPath)
+      .resize(48, 48, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+      .png()
+      .toFile(path.join(publicDir, 'favicon-a.png'));
+    console.log('Generated favicon-a.png (48x48)');
+
     // 3. apple-touch-icon.png (180x180)
     await sharp(logoPath)
       .resize(180, 180, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
