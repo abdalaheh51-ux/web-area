@@ -19,12 +19,9 @@ export const metadata: Metadata = {
     google: "googlee929da18687e1fb1",
   },
   icons: {
-    icon: [
-      { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
-      { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
-    ],
-    shortcut: "/favicon-32x32.png",
-    apple: "/apple-touch-icon.png",
+    icon: "/favicon-a.png",
+    shortcut: "/favicon-a.png",
+    apple: "/favicon-a.png",
   },
 };
 
