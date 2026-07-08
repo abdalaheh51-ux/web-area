@@ -28,9 +28,8 @@ export function generateSessionToken(): string {
 
 export async function createSession(userId: string): Promise<string> {
   const token = generateSessionToken()
-  await db.user.update({
-    where: { id: userId },
-    data: { sessionToken: token },
+  await db.session.create({
+    data: { userId, sessionToken: token, expiresAt: new Date(Date.now() + SESSION_MAX_AGE * 1000) },
   })
   return token
 }
@@ -60,17 +59,14 @@ export async function getCurrentUser(): Promise<AuthUser | null> {
   const token = await getSessionToken()
   if (!token) return null
 
-  const user = await db.user.findFirst({
+  const session = await db.session.findFirst({
     where: { sessionToken: token },
-    select: { id: true, email: true, name: true, avatar: true, role: true },
+    include: { user: { select: { id: true, email: true, name: true, avatar: true, role: true } } },
   })
 
-  return user
+  return session?.user || null
 }
 
 export async function clearSession(userId: string) {
-  await db.user.update({
-    where: { id: userId },
-    data: { sessionToken: null },
-  })
+  await db.session.deleteMany({ where: { userId } })
 }

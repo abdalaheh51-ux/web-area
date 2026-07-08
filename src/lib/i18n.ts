@@ -343,6 +343,7 @@ const ar = {
   // Footer
   footerDesc: 'نبني حضورك الرقمي من الصفر إلى السيستم الكامل',
   footerQuickLinks: 'روابط سريعة',
+  privacyPolicy: 'سياسة الخصوصية',
   footerContact: 'تواصل معنا',
   footerCopyright: '© 2025 Web Area. جميع الحقوق محفوظة.',
   footerFacebook: 'Facebook',
@@ -720,6 +721,7 @@ const en: typeof ar = {
   // Footer
   footerDesc: 'We build your digital presence from scratch to a complete system',
   footerQuickLinks: 'Quick Links',
+  privacyPolicy: 'Privacy Policy',
   footerContact: 'Contact Us',
   footerCopyright: '© 2025 Web Area. All rights reserved.',
   footerFacebook: 'Facebook',

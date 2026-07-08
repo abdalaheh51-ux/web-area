@@ -18,6 +18,7 @@ export default function Footer() {
     { label: t.navWhyUs, href: '#why-us' },
     { label: t.navPortfolio, href: '#cases' },
     { label: t.navComments, href: '#comments' },
+    { label: t.privacyPolicy, href: '/privacy' },
   ]
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
@@ -200,7 +201,7 @@ export default function Footer() {
                   <li key={link.href} className="group">
                     <a
                       href={link.href}
-                      onClick={(e) => handleClick(e, link.href)}
+                      onClick={link.href.startsWith('#') ? (e) => handleClick(e, link.href) : undefined}
                       className="relative text-sm text-primary-foreground/60 transition-all duration-300 group-hover:text-cyan-200 group-hover:tracking-wide inline-block"
                     >
                       <span className="absolute -left-3 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-[0_0_6px_rgba(34,211,238,0.8)]" />
@@ -223,11 +224,11 @@ export default function Footer() {
                 <li className="group flex items-center gap-2.5">
                   <Mail className="h-4 w-4 shrink-0 text-cyan-300 transition-transform duration-300 group-hover:scale-125" />
                   <a
-                    href="mailto:abdalaheh51@gmail.com"
+                    href="mailto:webarea2@gmail.com"
                     className="text-sm text-primary-foreground/60 transition-colors duration-300 group-hover:text-cyan-200"
                     dir="ltr"
                   >
-                    abdalaheh51@gmail.com
+                    webarea2@gmail.com
                   </a>
                   <button
                     onClick={() => copyToClipboard('abdalaheh51@gmail.com', 'email')}
