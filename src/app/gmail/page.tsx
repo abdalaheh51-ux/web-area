@@ -1,5 +1,3 @@
-import { useEffect } from 'react'
-
 const email = 'webarea2@gmail.com'
 const subject = 'استفسار بخصوص خدمة من Web Area'
 const body = 'أهلاً فريق Web Area، أود الاستفسار عن خدماتكم...'
@@ -19,27 +17,26 @@ export const metadata = {
 }
 
 export default function GmailRedirectPage() {
-  useEffect(() => {
-    // try to open Gmail in a new tab; if blocked, navigate current tab
-    const newWin = window.open(gmailLink, '_blank', 'noopener,noreferrer')
-    if (!newWin) {
-      window.location.href = gmailLink
+  // No React hooks here (server component). Use an inline script to open Gmail on the client.
+  const script = `(function(){
+    try {
+      var w = window.open('${gmailLink}', '_blank', 'noopener,noreferrer');
+      if(!w) window.location.href='${gmailLink}';
+    } catch(e) {
+      window.location.href='${gmailLink}';
     }
-  }, [])
+  })();`
 
   return (
-    <html>
-      <head>
-        <meta name="robots" content="noindex,follow" />
-      </head>
-      <body>
-        <p>جارٍ إعادة التوجيه إلى Gmail...</p>
-        <p>
-          إذا لم يعمل التحويل تلقائيًا، انسخ هذا الرابط والصقه في المتصفح:
-          <br />
-          <a href={gmailLink}>{gmailLink}</a>
-        </p>
-      </body>
-    </html>
+    <>
+      <meta name="robots" content="noindex,follow" />
+      <p>جارٍ إعادة التوجيه إلى Gmail...</p>
+      <p>
+        إذا لم يعمل التحويل تلقائيًا، انسخ هذا الرابط والصقه في المتصفح:
+        <br />
+        <a href={gmailLink}>{gmailLink}</a>
+      </p>
+      <script dangerouslySetInnerHTML={{ __html: script }} />
+    </>
   )
 }
