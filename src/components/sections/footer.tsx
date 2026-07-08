@@ -54,6 +54,23 @@ export default function Footer() {
     { icon: MessageCircle, label: 'WhatsApp', url: 'https://wa.me/201141990307', color: 'hover:text-green-300', glow: 'group-hover:bg-green-500/30' },
   ]
 
+  const EmailButton = () => {
+    const email = 'webarea2@gmail.com'
+    const subject = 'استفسار بخصوص خدمة من Web Area'
+    const body = 'أهلاً فريق Web Area، أود الاستفسار عن خدماتكم...'
+
+    const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+
+    return (
+      <a
+        href={mailtoLink}
+        className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
+      >
+        تواصل معنا عبر الإيميل
+      </a>
+    )
+  }
+
   // Generate random particles
   const particles = Array.from({ length: 12 }, (_, i) => ({
     id: i,
@@ -221,26 +238,29 @@ export default function Footer() {
             <div className="md:pl-4">
               <h4 className="font-semibold mb-4 text-lg footer-gradient-text inline-block">{t.footerContact}</h4>
               <ul className="space-y-3.5">
-                <li className="group flex items-center gap-2.5">
-                  <Mail className="h-4 w-4 shrink-0 text-cyan-300 transition-transform duration-300 group-hover:scale-125" />
-                  <a
-                    href="mailto:webarea2@gmail.com"
-                    className="text-sm text-primary-foreground/60 transition-colors duration-300 group-hover:text-cyan-200"
-                    dir="ltr"
-                  >
-                    webarea2@gmail.com
-                  </a>
-                  <button
-                    onClick={() => copyToClipboard('abdalaheh51@gmail.com', 'email')}
-                    className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                    aria-label="Copy email"
-                  >
-                    {copiedItem === 'email' ? (
-                      <Check className="w-3.5 h-3.5 text-green-400" />
-                    ) : (
-                      <Copy className="w-3.5 h-3.5 text-cyan-300/60 hover:text-cyan-200" />
-                    )}
-                  </button>
+                <li className="group flex flex-col gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <Mail className="h-4 w-4 shrink-0 text-cyan-300 transition-transform duration-300 group-hover:scale-125" />
+                    <a
+                      href="mailto:webarea2@gmail.com"
+                      className="text-sm text-primary-foreground/60 transition-colors duration-300 group-hover:text-cyan-200"
+                      dir="ltr"
+                    >
+                      webarea2@gmail.com
+                    </a>
+                    <button
+                      onClick={() => copyToClipboard('webarea2@gmail.com', 'email')}
+                      className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                      aria-label="Copy email"
+                    >
+                      {copiedItem === 'email' ? (
+                        <Check className="w-3.5 h-3.5 text-green-400" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5 text-cyan-300/60 hover:text-cyan-200" />
+                      )}
+                    </button>
+                  </div>
+                  <EmailButton />
                 </li>
                 <li className="group flex items-center gap-2.5">
                   <Phone className="h-4 w-4 shrink-0 text-cyan-300 transition-transform duration-300 group-hover:scale-125" />
