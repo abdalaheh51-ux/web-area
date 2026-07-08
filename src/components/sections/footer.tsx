@@ -58,12 +58,30 @@ export default function Footer() {
     const email = 'webarea2@gmail.com'
     const subject = 'استفسار بخصوص خدمة من Web Area'
     const body = 'أهلاً فريق Web Area، أود الاستفسار عن خدماتكم...'
+    // Gmail compose URL (opens Gmail compose in a new tab)
+    const gmailLink = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(
+      email
+    )}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
 
-    const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+    // Fallback mailto link for non-Gmail clients
+    const mailtoLink = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(
+      body
+    )}`
 
     return (
       <a
-        href={mailtoLink}
+        href={gmailLink}
+        onClick={(e) => {
+          e.preventDefault()
+          const newWin = window.open(gmailLink, '_blank', 'noopener,noreferrer')
+          if (!newWin) {
+            // Popup blocked — fallback to mailto in current tab
+            window.location.href = mailtoLink
+          }
+        }}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Compose email in Gmail"
         className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
       >
         تواصل معنا عبر الإيميل
