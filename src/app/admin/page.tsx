@@ -552,7 +552,73 @@ export default function AdminDashboard() {
     closed: dir === 'rtl' ? 'مغلق' : 'Closed',
   }
 
-  // Filter requests
+  const industryLabels = [
+    { key: 'restaurant', label: t.pbIndustry1 },
+    { key: 'ecommerce', label: t.pbIndustry2 },
+    { key: 'realestate', label: t.pbIndustry3 },
+    { key: 'medical', label: t.pbIndustry4 },
+    { key: 'education', label: t.pbIndustry5 },
+    { key: 'corporate', label: t.pbIndustry6 },
+    { key: 'creative', label: t.pbIndustry7 },
+    { key: 'other', label: t.pbIndustry8 },
+  ]
+
+  const featureLabels = [
+    { key: 'cart', label: t.pbFeature1 },
+    { key: 'accounts', label: t.pbFeature2 },
+    { key: 'multilang', label: t.pbFeature3 },
+    { key: 'chat', label: t.pbFeature4 },
+    { key: 'analytics', label: t.pbFeature5 },
+    { key: 'reviews', label: t.pbFeature6 },
+  ]
+
+  const budgetLabels = [
+    { key: 'budget1', label: t.pbBudget1 },
+    { key: 'budget2', label: t.pbBudget2 },
+    { key: 'budget3', label: t.pbBudget3 },
+    { key: 'budget4', label: t.pbBudget4 },
+    { key: 'budget5', label: t.pbBudget5 },
+  ]
+
+  const timelineLabels = [
+    { key: 'timeline1', label: t.pbTimeline1 },
+    { key: 'timeline2', label: t.pbTimeline2 },
+    { key: 'timeline3', label: t.pbTimeline3 },
+    { key: 'timeline4', label: t.pbTimeline4 },
+  ]
+
+  const contactMethodLabels = [
+    { key: 'email', label: t.pbContact1 },
+    { key: 'whatsapp', label: t.pbContact2 },
+    { key: 'phone', label: t.pbContact3 },
+    { key: 'internal', label: t.pbContact4 },
+  ]
+
+  const bestTimeLabels = [
+    { key: 'morning', label: t.pbBestTime1 },
+    { key: 'noon', label: t.pbBestTime2 },
+    { key: 'evening', label: t.pbBestTime3 },
+    { key: 'any', label: t.pbBestTime4 },
+  ]
+
+  const getIndustryLabel = (key: string) =>
+    industryLabels.find((item) => item.key === key)?.label || key
+
+  const getFeatureLabel = (key: string) =>
+    featureLabels.find((item) => item.key === key)?.label || key
+
+  const getBudgetLabel = (key: string) =>
+    budgetLabels.find((item) => item.key === key)?.label || key
+
+  const getTimelineLabel = (key: string) =>
+    timelineLabels.find((item) => item.key === key)?.label || key
+
+  const getContactMethodLabel = (key: string) =>
+    contactMethodLabels.find((item) => item.key === key)?.label || key
+
+  const getBestTimeLabel = (key: string) =>
+    bestTimeLabels.find((item) => item.key === key)?.label || key
+
   const filteredRequests = requests.filter(r => {
     const matchesSearch = !searchQuery ||
       r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -871,15 +937,22 @@ export default function AdminDashboard() {
                 filteredRequests.map((req) => {
                   // Parse JSON fields once
                   let parsedSites: { url: string }[] = []
-                  let parsedFeatures: Record<string, unknown> = {}
+                  let parsedFeatures: unknown = []
                   try { parsedSites = JSON.parse(req.referenceSites) } catch {}
                   try { parsedFeatures = JSON.parse(req.features) } catch {}
 
-                  // Flatten features to readable chips
                   const featureChips: string[] = []
-                  if (parsedFeatures && typeof parsedFeatures === 'object') {
+                  if (Array.isArray(parsedFeatures)) {
+                    parsedFeatures.forEach((value) => {
+                      if (typeof value === 'string') {
+                        featureChips.push(getFeatureLabel(value))
+                      } else if (value && typeof value === 'object') {
+                        featureChips.push(JSON.stringify(value))
+                      }
+                    })
+                  } else if (parsedFeatures && typeof parsedFeatures === 'object') {
                     Object.entries(parsedFeatures).forEach(([key, val]) => {
-                      if (val === true) featureChips.push(key)
+                      if (val === true) featureChips.push(getFeatureLabel(key))
                       else if (Array.isArray(val)) val.forEach((v: unknown) => featureChips.push(String(v)))
                       else if (val && val !== false) featureChips.push(`${key}: ${val}`)
                     })
@@ -919,7 +992,7 @@ export default function AdminDashboard() {
                                 <span className="text-xs text-muted-foreground">{formatDate(req.createdAt)}</span>
                                 <span className="text-muted-foreground/40 text-xs">·</span>
                                 <span className="text-xs text-muted-foreground flex items-center gap-1">
-                                  <Briefcase className="w-3 h-3" />{req.industry}
+                                  <Briefcase className="w-3 h-3" />{getIndustryLabel(req.industry)}
                                 </span>
                               </div>
                             </div>
@@ -1002,7 +1075,7 @@ export default function AdminDashboard() {
                                       </div>
                                       <div>
                                         <p className="text-[10px] text-muted-foreground mb-0.5">{dir === 'rtl' ? 'طريقة التواصل' : 'Contact Method'}</p>
-                                        <p className="text-xs font-medium">{req.contactMethod}</p>
+                                        <p className="text-xs font-medium">{getContactMethodLabel(req.contactMethod)}</p>
                                       </div>
                                     </div>
                                     {req.bestTime && (
@@ -1012,7 +1085,7 @@ export default function AdminDashboard() {
                                         </div>
                                         <div>
                                           <p className="text-[10px] text-muted-foreground mb-0.5">{dir === 'rtl' ? 'أفضل وقت' : 'Best Time'}</p>
-                                          <p className="text-xs font-medium">{req.bestTime}</p>
+                                          <p className="text-xs font-medium">{getBestTimeLabel(req.bestTime)}</p>
                                         </div>
                                       </div>
                                     )}
@@ -1030,7 +1103,7 @@ export default function AdminDashboard() {
                                         <Briefcase className="w-3.5 h-3.5 text-muted-foreground" />
                                         <p className="text-[10px] text-muted-foreground">{dir === 'rtl' ? 'المجال' : 'Industry'}</p>
                                       </div>
-                                      <p className="text-sm font-semibold">{req.industry}</p>
+                                      <p className="text-sm font-semibold">{getIndustryLabel(req.industry)}</p>
                                     </div>
                                     {req.budget && (
                                       <div className="p-3 rounded-xl bg-muted/20 border border-border/30">
@@ -1038,7 +1111,7 @@ export default function AdminDashboard() {
                                           <DollarSign className="w-3.5 h-3.5 text-muted-foreground" />
                                           <p className="text-[10px] text-muted-foreground">{dir === 'rtl' ? 'الميزانية' : 'Budget'}</p>
                                         </div>
-                                        <p className="text-sm font-semibold">{req.budget}</p>
+                                        <p className="text-sm font-semibold">{getBudgetLabel(req.budget)}</p>
                                       </div>
                                     )}
                                     {req.timeline && (
@@ -1047,7 +1120,7 @@ export default function AdminDashboard() {
                                           <Clock className="w-3.5 h-3.5 text-muted-foreground" />
                                           <p className="text-[10px] text-muted-foreground">{dir === 'rtl' ? 'المدة' : 'Timeline'}</p>
                                         </div>
-                                        <p className="text-sm font-semibold">{req.timeline}</p>
+                                        <p className="text-sm font-semibold">{getTimelineLabel(req.timeline)}</p>
                                       </div>
                                     )}
                                   </div>
