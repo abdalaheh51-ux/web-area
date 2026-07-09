@@ -24,17 +24,19 @@
 
 import bcrypt from 'bcryptjs'
 import dotenv from 'dotenv'
-import { readFileSync } from 'fs'
 import { join, dirname } from 'path'
 import { fileURLToPath } from 'url'
+import { PrismaClient } from '@prisma/client'
 
-// Load .env file
+// Load environment variables in the same precedence order used by Next.js
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const envPath = join(__dirname, '..', '.env')
+const envDir = join(__dirname, '..')
+
 try {
-  dotenv.config({ path: envPath })
+  dotenv.config({ path: join(envDir, '.env') })
+  dotenv.config({ path: join(envDir, '.env.local'), override: true })
 } catch {
-  // .env not found — will rely on system environment variables
+  // Env files not found — will rely on system environment variables
 }
 
 function detectDatabaseType(url: string): 'sqlite' | 'postgresql' {
@@ -104,54 +106,48 @@ async function seedSQLite(dbUrl: string, email: string, password: string, name: 
 }
 
 // ─── PostgreSQL Handler ──────────────────────────────────────────
-async function seedPostgreSQL(dbUrl: string, email: string, password: string, name: string) {
+async function seedPostgreSQL(_dbUrl: string, email: string, password: string, name: string) {
   console.log(`🔗 Connecting to PostgreSQL database...`)
 
-  // Use pg (node-postgres) — will require it at runtime
-  let pool: any
-  try {
-    const pg = await import('pg')
-    pool = new pg.Pool({ connectionString: dbUrl })
-  } catch (e: any) {
-    if (e.code === 'ERR_MODULE_NOT_FOUND' || e.message?.includes('Cannot find package')) {
-      console.error('❌ Missing "pg" package. Please install it:')
-      console.error('   npm install pg   (or: bun add pg)')
-      console.error('   Then run this script again.')
-      process.exit(1)
-    }
-    throw e
-  }
-
+  const prisma = new PrismaClient()
   const hashed = await bcrypt.hash(password, 12)
 
-  const existing = await pool.query('SELECT id FROM "User" WHERE email = $1', [email])
+  try {
+    const existing = await prisma.user.findUnique({ where: { email } })
 
-  if (existing.rows.length > 0) {
-    await pool.query(
-      'UPDATE "User" SET name = $1, role = $2, password = $3, "updatedAt" = NOW() WHERE id = $4',
-      [name, 'admin', hashed, existing.rows[0].id]
-    )
-    await pool.query('DELETE FROM "Session" WHERE "userId" = $1', [existing.rows[0].id])
-    console.log('✅ Admin account updated successfully')
-  } else {
-    const { randomUUID } = await import('crypto')
-    const id = randomUUID()
-    await pool.query(
-      'INSERT INTO "User" (id, email, name, password, role, "createdAt", "updatedAt") VALUES ($1, $2, $3, $4, $5, NOW(), NOW())',
-      [id, email, name, hashed, 'admin']
-    )
-    console.log('✅ Admin account created successfully')
+    if (existing) {
+      await prisma.user.update({
+        where: { id: existing.id },
+        data: {
+          name,
+          role: 'admin',
+          password: hashed,
+        },
+      })
+      await prisma.session.deleteMany({ where: { userId: existing.id } })
+      console.log('✅ Admin account updated successfully')
+    } else {
+      await prisma.user.create({
+        data: {
+          email,
+          name,
+          password: hashed,
+          role: 'admin',
+        },
+      })
+      console.log('✅ Admin account created successfully')
+    }
+
+    const verify = await prisma.user.findFirst({ where: { role: 'admin' } })
+    if (!verify) {
+      console.error('❌ Failed to create/update admin account')
+      process.exit(1)
+    }
+
+    return true
+  } finally {
+    await prisma.$disconnect()
   }
-
-  const verify = await pool.query('SELECT email, role FROM "User" WHERE role = $1', ['admin'])
-  if (verify.rows.length === 0) {
-    console.error('❌ Failed to create/update admin account')
-    await pool.end()
-    process.exit(1)
-  }
-
-  await pool.end()
-  return true
 }
 
 // ─── Main ────────────────────────────────────────────────────────
