@@ -73,3 +73,5 @@ server.log
 screenshot-*.png
 inspect-*.png
 web-area-full-project.tar.gz
+.vercel
+.env*
