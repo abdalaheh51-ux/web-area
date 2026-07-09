@@ -170,13 +170,15 @@ export default function Navbar() {
         <div className="relative mx-auto max-w-7xl flex items-center justify-between h-full px-4 sm:px-6 lg:px-8">
           {/* Logo */}
           <a
-            href="#hero"
+            href="/"
             onClick={(e) => {
-              e.preventDefault()
-              window.scrollTo({ top: 0, behavior: 'smooth' })
+              if (window.location.pathname === '/') {
+                e.preventDefault()
+                window.scrollTo({ top: 0, behavior: 'smooth' })
+              }
             }}
             className="flex items-center gap-2.5 group shrink-0"
-            aria-label={dir === 'rtl' ? 'العودة للأعلى - Web Area' : 'Back to top - Web Area'}
+            aria-label={dir === 'rtl' ? 'العودة للصفحة الرئيسية - Web Area' : 'Back to homepage - Web Area'}
           >
             <div
               className={`relative rounded-full overflow-hidden ring-2 transition-all duration-300 nav-logo-glow ${
