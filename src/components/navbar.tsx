@@ -30,6 +30,11 @@ function scrollToSection(href: string) {
   const target = document.querySelector(href)
   if (target) {
     target.scrollIntoView({ behavior: 'smooth' })
+    return
+  }
+
+  if (href.startsWith('#')) {
+    window.location.href = `/${href}`
   }
 }
 
