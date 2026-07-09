@@ -10,7 +10,9 @@
     "db:push": "prisma db push",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
-    "db:reset": "prisma migrate reset"
+    "db:reset": "prisma migrate reset",
+    "db:seed-admin": "bun run scripts/seed-admin.ts",
+    "db:rotate-admin": "bun run scripts/rotate-admin.js"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -50,7 +52,6 @@
     "@supabase/supabase-js": "^2.110.0",
     "@tanstack/react-query": "^5.82.0",
     "@tanstack/react-table": "^8.21.3",
-    "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
@@ -63,7 +64,6 @@
     "next-auth": "^4.24.11",
     "next-intl": "^4.3.4",
     "next-themes": "^0.4.6",
-    "prisma": "^6.11.1",
     "react": "^19.0.0",
     "react-day-picker": "^9.8.0",
     "react-dom": "^19.0.0",
@@ -87,10 +87,15 @@
     "@types/bcryptjs": "^3.0.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^12.11.1",
     "bun-types": "^1.3.4",
+    "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "^16.1.1",
+    "prisma": "^6.11.1",
     "tailwindcss": "^4",
+    "tsx": "^4.23.0",
     "tw-animate-css": "^1.3.5",
     "typescript": "^5"
   }

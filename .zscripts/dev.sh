@@ -130,6 +130,17 @@ echo "[BUN] Setting up database..."
 bun run db:push
 log_step_end "bun run db:push"
 
+log_step_start "bun run db:seed-admin"
+echo "[BUN] Seeding admin account (skips if .env not configured)..."
+if [ -f ".env" ] && grep -q "ADMIN_EMAIL" .env && grep -q "ADMIN_PASSWORD" .env; then
+  npx tsx scripts/seed-admin.ts
+  log_step_end "bun run db:seed-admin"
+else
+  echo "  ⚠ Skipping admin seed — no ADMIN_EMAIL/ADMIN_PASSWORD in .env"
+  echo "  To create admin, add credentials to .env and run: npx tsx scripts/seed-admin.ts"
+  log_step_end "bun run db:seed-admin (skipped)"
+fi
+
 log_step_start "Starting Next.js dev server"
 echo "[BUN] Starting development server..."
 bun run dev &
