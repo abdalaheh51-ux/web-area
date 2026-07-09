@@ -22,6 +22,37 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
   return bcrypt.compare(password, hash)
 }
 
+export async function ensureAdminUserFromEnv(): Promise<void> {
+  const adminEmail = process.env.ADMIN_EMAIL?.trim().toLowerCase()
+  const adminPassword = process.env.ADMIN_PASSWORD
+  const adminName = process.env.ADMIN_NAME?.trim() || 'Admin'
+
+  if (!adminEmail || !adminPassword) return
+
+  const existing = await db.user.findUnique({ where: { email: adminEmail } })
+  const hashedPassword = await hashPassword(adminPassword)
+
+  if (existing) {
+    await db.user.update({
+      where: { email: adminEmail },
+      data: {
+        role: 'admin',
+        password: hashedPassword,
+        name: adminName,
+      },
+    })
+  } else {
+    await db.user.create({
+      data: {
+        email: adminEmail,
+        name: adminName,
+        password: hashedPassword,
+        role: 'admin',
+      },
+    })
+  }
+}
+
 export function generateSessionToken(): string {
   return crypto.randomUUID() + crypto.randomUUID()
 }

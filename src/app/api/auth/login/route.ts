@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { verifyPassword, createSession, setSessionCookie } from "@/lib/auth";
+import { verifyPassword, createSession, setSessionCookie, ensureAdminUserFromEnv } from "@/lib/auth";
 import { getRateLimitKey, checkRateLimit, recordFailedAttempt, clearRateLimit, getClientIP, RATE_LIMIT_CONFIG } from "@/lib/rate-limiter";
 
 export async function POST(request: NextRequest) {
@@ -12,9 +12,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 });
     }
 
+    const normalizedEmail = String(email).trim().toLowerCase()
+
+    if (normalizedEmail === process.env.ADMIN_EMAIL?.trim().toLowerCase()) {
+      await ensureAdminUserFromEnv()
+    }
+
     // Rate limiting
     const ip = getClientIP(request)
-    const rateLimitKey = getRateLimitKey(email, ip)
+    const rateLimitKey = getRateLimitKey(normalizedEmail, ip)
     const rateLimitStatus = checkRateLimit(rateLimitKey)
 
     if (!rateLimitStatus.allowed) {
@@ -28,7 +34,7 @@ export async function POST(request: NextRequest) {
       }, { status: 429 })
     }
 
-    const user = await db.user.findUnique({ where: { email: email.toLowerCase() } });
+    const user = await db.user.findUnique({ where: { email: normalizedEmail } });
 
     // Always record failed attempt if user not found or password wrong
     if (!user) {
