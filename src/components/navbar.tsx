@@ -43,6 +43,7 @@ export default function Navbar() {
   const { theme, setTheme } = useTheme()
   const mounted = useMounted()
   const [scrolled, setScrolled] = useState(false)
+  const [scrollProgress, setScrollProgress] = useState(0)
   const [open, setOpen] = useState(false)
   const [activeId, setActiveId] = useState<string>('hero')
   const [authOpen, setAuthOpen] = useState(false)
@@ -61,6 +62,8 @@ export default function Navbar() {
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20)
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight
+      setScrollProgress(docHeight > 0 ? (window.scrollY / docHeight) * 100 : 0)
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
     handleScroll()
@@ -211,13 +214,13 @@ export default function Navbar() {
                   onClick={(e) => handleNavClick(e, link.href)}
                   aria-label={link.label}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`relative text-sm font-medium transition-colors duration-200 hover:text-blue-500 ${
+                  className={`relative text-sm font-medium transition-colors duration-200 hover:text-cyan-400 ${
                     isActive ? 'text-foreground' : 'text-muted-foreground'
                   }`}
                 >
                   {link.label}
                   <span
-                    className={`absolute -bottom-1.5 left-0 right-0 h-0.5 rounded-full bg-gradient-to-l from-blue-500 to-amber-500 transition-transform duration-300 ${
+                    className={`absolute -bottom-1.5 left-0 right-0 h-0.5 rounded-full bg-gradient-to-l from-cyan-400 to-violet-500 transition-transform duration-300 ${
                       isActive ? 'scale-x-100' : 'scale-x-0'
                     }`}
                     style={{ transformOrigin: dir === 'rtl' ? 'right' : 'left' }}
@@ -442,7 +445,7 @@ export default function Navbar() {
                         onClick={(e) => handleNavClick(e, link.href, () => setOpen(false))}
                         aria-label={link.label}
                         aria-current={isActive ? 'page' : undefined}
-                        className={`block rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-200 hover:text-blue-500 ${
+                        className={`block rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-200 hover:text-cyan-400 ${
                           isActive
                             ? 'text-foreground bg-accent'
                             : 'text-muted-foreground hover:bg-accent'
@@ -505,6 +508,13 @@ export default function Navbar() {
         {/* Auth Modal */}
         <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
       </nav>
+
+      {/* Scroll Progress Bar */}
+      <div
+        className="scroll-progress-bar"
+        style={{ width: `${scrollProgress}%` }}
+        aria-hidden="true"
+      />
     </>
   )
 }

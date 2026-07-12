@@ -226,15 +226,15 @@ export default function GrowthSpectrum() {
           transition={{ duration: 0.6, ease: 'easeOut' }}
           className="text-center mb-16 space-y-3"
         >
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-foreground">
-            {t.growthTitle}
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold">
+            <span className="gradient-text-cyber">{t.growthTitle}</span>
           </h2>
           <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
             {t.growthSubtitle}
           </p>
           {/* Decorative gradient line */}
           <div className="flex justify-center pt-2">
-            <div className="h-1 w-24 rounded-full bg-gradient-to-l from-blue-500 to-amber-500" />
+            <div className="h-1 w-24 rounded-full bg-gradient-to-l from-cyan-400 to-violet-500" />
           </div>
         </motion.div>
 
@@ -242,15 +242,16 @@ export default function GrowthSpectrum() {
         <div className="hidden lg:block relative">
           {/* Horizontal connector line */}
           <div className="absolute top-[68px] left-[10%] right-[10%] z-0 pointer-events-none">
-            <div className="h-0.5 w-full rounded-full bg-gradient-to-l from-blue-500 via-blue-600 to-amber-500 opacity-40" />
-            {/* Animated progress dots */}
+            <div className="h-0.5 w-full rounded-full bg-gradient-to-l from-cyan-400 via-violet-500 to-cyan-400 opacity-30" />
+            {/* Animated progress */}
             <div className="relative h-0.5 -top-0.5">
               <motion.div
                 initial={{ width: '0%' }}
                 whileInView={{ width: '100%' }}
                 viewport={{ once: true }}
                 transition={{ duration: 2, delay: 1, ease: 'easeInOut' }}
-                className="h-full rounded-full bg-gradient-to-l from-blue-500 via-blue-600 to-amber-500"
+                className="h-full rounded-full"
+                style={{ background: 'linear-gradient(90deg, #22d3ee, #7c3aed, #22d3ee)', boxShadow: '0 0 8px rgba(34,211,238,0.5)' }}
               />
             </div>
           </div>
@@ -283,7 +284,7 @@ export default function GrowthSpectrum() {
                 {/* Connector dot between rows */}
                 {index === 1 && (
                   <div className="flex justify-center py-3">
-                    <div className="w-0.5 h-6 rounded-full bg-gradient-to-b from-blue-500 to-amber-500 opacity-40" />
+                    <div className="w-0.5 h-6 rounded-full opacity-40" style={{ background: 'linear-gradient(to bottom, #22d3ee, #7c3aed)' }} />
                   </div>
                 )}
               </div>
@@ -301,7 +302,7 @@ export default function GrowthSpectrum() {
             className="relative pr-10"
           >
             {/* Timeline vertical line */}
-            <div className="absolute right-6 top-0 bottom-0 w-0.5 rounded-full bg-gradient-to-b from-blue-500 via-blue-600 to-amber-500 opacity-40" />
+            <div className="absolute right-6 top-0 bottom-0 w-0.5 rounded-full opacity-25" style={{ background: 'linear-gradient(to bottom, #22d3ee, #7c3aed, #22d3ee)' }} />
 
             {/* Animated progress line */}
             <div className="absolute right-6 top-0 w-0.5 rounded-full overflow-hidden" style={{ height: '100%' }}>
@@ -310,7 +311,8 @@ export default function GrowthSpectrum() {
                 whileInView={{ height: '100%' }}
                 viewport={{ once: true }}
                 transition={{ duration: 2, delay: 0.5, ease: 'easeInOut' }}
-                className="w-full rounded-full bg-gradient-to-b from-blue-500 via-blue-600 to-amber-500"
+                className="w-full rounded-full"
+                style={{ background: 'linear-gradient(to bottom, #22d3ee, #7c3aed)', boxShadow: '0 0 6px rgba(34,211,238,0.6)' }}
               />
             </div>
 

@@ -616,9 +616,10 @@ function DigitalTransformationVisual() {
               onClick={() => setPhase(i)}
               className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-medium transition-all duration-300 ${
                 i === phase
-                  ? 'bg-primary/15 text-primary border border-primary/30 shadow-sm'
+                  ? 'text-cyan-400 border border-cyan-400/40'
                   : 'text-muted-foreground hover:text-foreground hover:bg-muted/50 border border-transparent'
               }`}
+              style={i === phase ? { background: 'rgba(34,211,238,0.08)', boxShadow: '0 0 12px rgba(34,211,238,0.15)' } : {}}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -632,7 +633,7 @@ function DigitalTransformationVisual() {
       {/* Progress bar */}
       <div className="mt-2 h-0.5 bg-muted/30 rounded-full overflow-hidden">
         <motion.div
-          className="h-full rounded-full bg-gradient-to-l from-blue-500 to-amber-500"
+          className="h-full rounded-full bg-gradient-to-l from-cyan-400 to-violet-500"
           key={phase}
           initial={{ width: '0%' }}
           animate={{ width: '100%' }}
@@ -648,32 +649,32 @@ function GradientOrbs() {
   return (
     <>
       <div
-        className="absolute top-1/4 right-1/4 w-72 h-72 rounded-full animate-float opacity-30 blur-3xl pointer-events-none"
+        className="absolute top-1/4 right-1/4 w-80 h-80 rounded-full animate-float opacity-20 blur-3xl pointer-events-none"
         style={{
-          background: 'radial-gradient(circle, oklch(0.55 0.17 250) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, #06b6d4 0%, transparent 70%)',
           animationDelay: '0s',
         }}
       />
       <div
-        className="absolute bottom-1/4 left-1/4 w-64 h-64 rounded-full opacity-25 blur-3xl pointer-events-none"
+        className="absolute bottom-1/4 left-1/4 w-72 h-72 rounded-full opacity-15 blur-3xl pointer-events-none"
         style={{
-          background: 'radial-gradient(circle, oklch(0.82 0.16 85) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, #7c3aed 0%, transparent 70%)',
           animation: 'float 4s ease-in-out infinite',
           animationDelay: '1.5s',
         }}
       />
       <div
-        className="absolute top-1/3 left-1/3 w-40 h-40 rounded-full opacity-20 blur-2xl pointer-events-none"
+        className="absolute top-1/3 left-1/3 w-48 h-48 rounded-full opacity-15 blur-2xl pointer-events-none"
         style={{
-          background: 'radial-gradient(circle, oklch(0.55 0.17 250) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, #22d3ee 0%, transparent 70%)',
           animation: 'float 5s ease-in-out infinite',
           animationDelay: '0.8s',
         }}
       />
       <div
-        className="absolute bottom-1/3 right-1/3 w-48 h-48 rounded-full opacity-20 blur-2xl pointer-events-none"
+        className="absolute bottom-1/3 right-1/3 w-56 h-56 rounded-full opacity-12 blur-2xl pointer-events-none"
         style={{
-          background: 'radial-gradient(circle, oklch(0.82 0.16 85) 0%, transparent 70%)',
+          background: 'radial-gradient(circle, #a78bfa 0%, transparent 70%)',
           animation: 'float 3.5s ease-in-out infinite',
           animationDelay: '2s',
         }}
@@ -690,20 +691,21 @@ export default function HeroSection() {
       {/* Background effects */}
       {/* Animated gradient mesh background */}
       <div className="absolute inset-0 mesh-gradient animated-gradient opacity-60 pointer-events-none" />
+      {/* Circuit grid */}
+      <div className="absolute inset-0 circuit-pattern opacity-50" />
       {/* Floating shapes */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="floating-shape absolute top-1/4 right-10 w-16 h-16 rounded-2xl bg-blue-500/10 blur-sm" />
-        <div className="floating-shape absolute bottom-1/3 left-10 w-12 h-12 rounded-full bg-amber-500/10 blur-sm" style={{ animationDelay: '2s' }} />
-        <div className="floating-shape absolute top-1/2 right-1/4 w-8 h-8 rounded-lg bg-cyan-500/10 blur-sm" style={{ animationDelay: '4s' }} />
+        <div className="floating-shape absolute top-1/4 right-10 w-16 h-16 rounded-2xl" style={{ background: 'rgba(34,211,238,0.06)', backdropFilter: 'blur(4px)', border: '1px solid rgba(34,211,238,0.15)' }} />
+        <div className="floating-shape absolute bottom-1/3 left-10 w-12 h-12 rounded-full" style={{ background: 'rgba(124,58,237,0.06)', backdropFilter: 'blur(4px)', border: '1px solid rgba(124,58,237,0.15)', animationDelay: '2s' }} />
+        <div className="floating-shape absolute top-1/2 right-1/4 w-8 h-8 rounded-lg" style={{ background: 'rgba(34,211,238,0.05)', border: '1px solid rgba(34,211,238,0.12)', animationDelay: '4s' }} />
       </div>
       {/* Blur orbs */}
-      <div className="blur-orb w-72 h-72 top-0 right-1/4 bg-blue-500" />
-      <div className="blur-orb w-64 h-64 bottom-0 left-1/4 bg-amber-500" />
+      <div className="blur-orb w-80 h-80 top-0 right-1/4" style={{ background: '#22d3ee' }} />
+      <div className="blur-orb w-64 h-64 bottom-0 left-1/4" style={{ background: '#7c3aed' }} />
       {/* Noise texture */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.015]" style={{
         backgroundImage: 'url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Cfilter id=%22n%22%3E%3CfeTurbulence type=%22fractalNoise%22 baseFrequency=%220.9%22/%3E%3C/filter%3E%3Crect width=%22100%25%22 height=%22100%25%22 filter=%22url(%23n)%22/%3E%3C/svg%3E")',
       }} />
-      <div className="absolute inset-0 grid-pattern opacity-60" />
       <GradientOrbs />
 
       {/* Content */}
@@ -740,16 +742,16 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.6 }}
             >
-              <span className="block text-slide-up">{t.heroTitle1}</span>
+              <span className="block text-slide-up text-foreground">{t.heroTitle1}</span>
               <span className="block mt-2 text-slide-up">
                 {t.heroTitle2}{' '}
-                <span className="text-primary">{t.heroTitleHighlight}</span>،
+                <span className="gradient-text-cyber">{t.heroTitleHighlight}</span>،
               </span>
               <span className="block mt-1 text-slide-up">
                 {t.heroTitle3.includes('ERP') ? (
                   <>
                     {t.heroTitle3.split('ERP')[0]}
-                    <span className="text-amber-600 dark:text-amber-400">ERP</span>
+                    <span className="gradient-text-violet">ERP</span>
                     {t.heroTitle3.split('ERP')[1]}
                   </>
                 ) : (
@@ -775,14 +777,26 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7, duration: 0.6 }}
             >
-              <Button size="lg" className="text-base px-6 py-5 rounded-xl shadow-lg shadow-primary/25 group" onClick={() => document.querySelector('#project-builder')?.scrollIntoView({ behavior: 'smooth' })}>
-                <Rocket className="w-5 h-5 ml-2 transition-transform group-hover:-translate-y-0.5 group-hover:rotate-12" />
+              <button
+                type="button"
+                className="relative overflow-hidden text-base px-8 py-4 rounded-xl font-bold text-white flex items-center gap-2 transition-all duration-300 hover:scale-105 group"
+                style={{
+                  background: 'linear-gradient(135deg, #06b6d4, #7c3aed)',
+                  boxShadow: '0 4px 25px rgba(34,211,238,0.35), 0 0 0 1px rgba(34,211,238,0.2)',
+                }}
+                onClick={() => document.querySelector('#project-builder')?.scrollIntoView({ behavior: 'smooth' })}
+              >
+                <span className="animate-shimmer absolute inset-0 pointer-events-none" />
+                <Rocket className="w-5 h-5 transition-transform group-hover:-translate-y-0.5 group-hover:rotate-12" />
                 {t.heroCTA}
-                <ArrowLeft className="w-4 h-4 mr-1 transition-transform group-hover:-translate-x-1" />
-              </Button>
-              <Button variant="outline" size="lg" className="text-base px-6 py-5 rounded-xl border-primary/30 hover:border-blue-500 hover:text-blue-500 hover:bg-blue-500/10" onClick={() => document.querySelector('#growth')?.scrollIntoView({ behavior: 'smooth' })}>
+                <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+              </button>
+              <button
+                type="button"
+                className="text-base px-8 py-4 rounded-xl font-semibold transition-all duration-300 hover:scale-105 border border-cyan-400/30 text-cyan-400 hover:bg-cyan-400/10"
+              >
                 {t.heroDiscover}
-              </Button>
+              </button>
             </motion.div>
 
             {/* Stats row */}
