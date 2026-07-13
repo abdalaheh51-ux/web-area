@@ -88,6 +88,8 @@ function PortfolioForm({ item, onSave, onCancel, dir }: {
   const { toast } = useToast()
   const [formTab, setFormTab] = useState<'basic' | 'details' | 'images'>('basic')
   const [uploadingField, setUploadingField] = useState<string | null>(null)
+  const [capturingScreenshot, setCapturingScreenshot] = useState(false)
+  const [screenshotMode, setScreenshotMode] = useState<'light' | 'dark'>('light')
   const [formData, setFormData] = useState({
     name: item?.name || '',
     nameEn: item?.nameEn || '',
@@ -195,8 +197,83 @@ function PortfolioForm({ item, onSave, onCancel, dir }: {
     </label>
   )
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
+    // Auto-capture screenshots from the project's website if:
+    //  - an externalUrl is provided, AND
+    //  - no main image has been set yet
+    // This way new projects get the scroll animation automatically.
+    if (formData.externalUrl && !formData.imageUrl && !item?.id) {
+      const captured = await captureScreenshot(formData.externalUrl, screenshotMode)
+      if (captured) {
+        const updated = {
+          ...formData,
+          imageUrl: captured.imageUrl,
+          gallery1: captured.gallery1,
+          gallery2: captured.gallery2,
+          gallery3: captured.gallery3,
+          id: item?.id,
+        }
+        setFormData(prev => ({
+          ...prev,
+          imageUrl: captured.imageUrl,
+          gallery1: captured.gallery1,
+          gallery2: captured.gallery2,
+          gallery3: captured.gallery3,
+        }))
+        onSave(updated)
+        return
+      }
+    }
     onSave({ ...formData, id: item?.id })
+  }
+
+  // Capture full-page screenshots of the given website URL.
+  // The backend opens the site, sets the chosen color scheme (light/dark),
+  // scrolls through it (so lazy images load), takes a tall screenshot,
+  // then slices it into 4 varied sections (hero/early/middle/late) and
+  // returns all paths.
+  const captureScreenshot = async (url: string, mode: 'light' | 'dark' = 'light'): Promise<{
+    imageUrl: string
+    gallery1: string
+    gallery2: string
+    gallery3: string
+  } | null> => {
+    if (!url) return null
+    const rtl = dir === 'rtl'
+    setCapturingScreenshot(true)
+    try {
+      const res = await fetch('/api/admin/screenshot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url, mode }),
+      })
+      const data = await res.json()
+      if (data.success && data.imageUrl) {
+        toast({
+          title: rtl ? 'تم التقاط لقطات الموقع' : 'Website screenshots captured',
+          description: rtl
+            ? `تم التقاط 4 صور متنوعة من الموقع (وضع ${mode === 'dark' ? 'الظلام' : 'النهار'})`
+            : `4 varied sections captured (${mode} mode)`,
+        })
+        return {
+          imageUrl: data.imageUrl,
+          gallery1: data.gallery1,
+          gallery2: data.gallery2,
+          gallery3: data.gallery3,
+        }
+      }
+      toast({
+        title: rtl ? 'تعذر التقاط لقطة' : 'Could not capture screenshot',
+        description: data.error || (rtl ? 'حاول مرة أخرى أو ارفع صورة يدوياً' : 'Try again or upload an image manually'),
+        variant: 'destructive',
+      })
+      return null
+    } catch {
+      toast({ title: rtl ? 'خطأ في التقاط اللقطة' : 'Screenshot error', variant: 'destructive' })
+      return null
+    } finally {
+      setCapturingScreenshot(false)
+    }
   }
 
   const isRtl = dir === 'rtl'
@@ -342,7 +419,98 @@ function PortfolioForm({ item, onSave, onCancel, dir }: {
 
           <div className="space-y-1">
             <label className={labelClass}>{isRtl ? 'رابط الموقع (اختياري)' : 'External URL (optional)'}</label>
-            <Input value={formData.externalUrl} onChange={(e) => update('externalUrl', e.target.value)} className={inputClass} dir="ltr" placeholder="https://example.com" />
+            <div className="flex gap-2">
+              <Input value={formData.externalUrl} onChange={(e) => update('externalUrl', e.target.value)} className={inputClass} dir="ltr" placeholder="https://example.com" />
+              {formData.externalUrl && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={capturingScreenshot}
+                  onClick={async () => {
+                    const captured = await captureScreenshot(formData.externalUrl, screenshotMode)
+                    if (captured) {
+                      setFormData(prev => ({
+                        ...prev,
+                        imageUrl: captured.imageUrl,
+                        gallery1: captured.gallery1,
+                        gallery2: captured.gallery2,
+                        gallery3: captured.gallery3,
+                      }))
+                    }
+                  }}
+                  className="shrink-0 gap-1.5 text-xs"
+                >
+                  {capturingScreenshot ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Globe className="w-3.5 h-3.5" />
+                  )}
+                  {capturingScreenshot
+                    ? (isRtl ? 'جارى...' : 'Capturing...')
+                    : (isRtl ? 'التقط صورة' : 'Capture')}
+                </Button>
+              )}
+            </div>
+
+            {/* Light / Dark mode selector for the screenshot */}
+            {formData.externalUrl && (
+              <div className="flex items-center gap-2 pt-1">
+                <span className="text-[10px] font-medium text-muted-foreground">
+                  {isRtl ? 'وضع الالتقاط:' : 'Capture mode:'}
+                </span>
+                <div className="inline-flex rounded-md border border-border/40 overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setScreenshotMode('light')}
+                    disabled={capturingScreenshot}
+                    aria-pressed={screenshotMode === 'light'}
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                      screenshotMode === 'light'
+                        ? 'bg-amber-100 text-amber-900 dark:bg-amber-500/20 dark:text-amber-300'
+                        : 'bg-background text-muted-foreground hover:bg-muted/50'
+                    }`}
+                  >
+                    <Sun className="w-3.5 h-3.5" />
+                    {isRtl ? 'نهار' : 'Light'}
+                    {screenshotMode === 'light' && (
+                      <span className="size-1.5 rounded-full bg-amber-500" />
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setScreenshotMode('dark')}
+                    disabled={capturingScreenshot}
+                    aria-pressed={screenshotMode === 'dark'}
+                    className={`inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium transition-colors border-s border-border/40 disabled:opacity-50 disabled:cursor-not-allowed ${
+                      screenshotMode === 'dark'
+                        ? 'bg-slate-700 text-slate-100 dark:bg-slate-800 dark:text-slate-200'
+                        : 'bg-background text-muted-foreground hover:bg-muted/50'
+                    }`}
+                  >
+                    <Moon className="w-3.5 h-3.5" />
+                    {isRtl ? 'ليل' : 'Dark'}
+                    {screenshotMode === 'dark' && (
+                      <span className="size-1.5 rounded-full bg-slate-300" />
+                    )}
+                  </button>
+                </div>
+                <span className="text-[10px] text-muted-foreground/60">
+                  {screenshotMode === 'dark'
+                    ? (isRtl ? '✓ مفعّل الوضع الليلي' : '✓ Dark mode active')
+                    : (isRtl ? '✓ مفعّل الوضع النهاري' : '✓ Light mode active')}
+                </span>
+              </div>
+            )}
+
+            {formData.externalUrl && (
+              <p className="text-[10px] text-muted-foreground/50 flex items-center gap-1">
+                <Globe className="w-3 h-3" />
+                {isRtl
+                  ? 'سيتم التقاط لقطة من الموقع تلقائياً عند الحفظ إذا لم ترفع صورة'
+                  : 'A screenshot will be captured automatically on save if no image is set'}
+              </p>
+            )}
           </div>
 
           {/* Main image preview */}
@@ -362,11 +530,17 @@ function PortfolioForm({ item, onSave, onCancel, dir }: {
 
       {/* Actions */}
       <div className="flex gap-2 pt-3 border-t border-border/30">
-        <Button onClick={handleSubmit} className="gap-2">
-          <Check className="w-4 h-4" />
-          {isRtl ? 'حفظ' : 'Save'}
+        <Button onClick={handleSubmit} disabled={capturingScreenshot} className="gap-2">
+          {capturingScreenshot ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Check className="w-4 h-4" />
+          )}
+          {capturingScreenshot
+            ? (isRtl ? 'جارى التقاط لقطة الموقع...' : 'Capturing screenshot...')
+            : (isRtl ? 'حفظ' : 'Save')}
         </Button>
-        <Button variant="outline" onClick={onCancel}>
+        <Button variant="outline" onClick={onCancel} disabled={capturingScreenshot}>
           <X className="w-4 h-4" />
           {isRtl ? 'إلغاء' : 'Cancel'}
         </Button>

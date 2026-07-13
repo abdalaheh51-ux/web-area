@@ -421,6 +421,18 @@ html {
     inset 0 1px 0 rgba(34, 211, 238, 0.06);
 }
 
+/* Scroll animation for portfolio previews */
+.card-scroll-preview {
+  animation: card-scroll-preview 8s ease-in-out infinite alternate;
+  transform-origin: top center;
+}
+
+@keyframes card-scroll-preview {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-10%); }
+  100% { transform: translateY(-20%); }
+}
+
 /* Corner accent on cyber cards */
 .cyber-card-corner::after {
   content: '';

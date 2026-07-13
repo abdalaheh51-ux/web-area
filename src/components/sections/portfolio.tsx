@@ -54,7 +54,7 @@ interface ProjectConfig {
 }
 
 const staticProjects: ProjectConfig[] = []
-const ITEMS_PER_PAGE = 6
+const ITEMS_PER_PAGE = 3
 
 function pick<T>(t: TranslationKeys, key: string): string {
   return (t as unknown as Record<string, string>)[key] ?? ''
@@ -93,32 +93,16 @@ const categoryAccentMap: Record<string, string> = {
   'Portfolio':      '#e879f9',
 }
 
-// ─── 3D Tilt Card Wrapper using pure CSS ──────────────────────────
+// ─── Card Wrapper (3D tilt removed to fix hover jitter + cursor issues) ──
 function TiltCard({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const x = useMotionValue(0.5)
-  const y = useMotionValue(0.5)
-  const rotateX = useTransform(y, [0, 1], [3, -3])
-  const rotateY = useTransform(x, [0, 1], [-3, 3])
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!ref.current) return
-    const rect = ref.current.getBoundingClientRect()
-    x.set((e.clientX - rect.left) / rect.width)
-    y.set((e.clientY - rect.top) / rect.height)
-  }
-  const handleMouseLeave = () => { x.set(0.5); y.set(0.5) }
-
+  // Previously used rotateX/rotateY via mouse position which caused:
+  //  - card jitter/shaking on mouse move (framer-motion updates every pixel)
+  //  - cursor disappearing/changing because 3D transforms break hit-testing on edges
+  // Now it's a simple pass-through wrapper. Hover effect handled by CSS (.cyber-card:hover).
   return (
-    <motion.div
-      ref={ref}
-      style={{ rotateX, rotateY, transformStyle: 'preserve-3d', transition: '0.15s ease-out' }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      className={className}
-    >
+    <div className={className}>
       {children}
-    </motion.div>
+    </div>
   )
 }
 
@@ -161,7 +145,7 @@ function ProjectCard({
     >
       <TiltCard>
         <div
-          className="cyber-card cyber-card-corner group aspect-[16/10] relative overflow-hidden"
+          className="cyber-card cyber-card-corner group aspect-[16/11] relative overflow-hidden cursor-pointer"
           onClick={onClick}
           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick() } }}
           tabIndex={0}
@@ -172,16 +156,16 @@ function ProjectCard({
           <div className={`absolute inset-0 bg-gradient-to-br ${project.gradient} overflow-hidden`}>
             <LiveBadge url={project.externalUrl} />
 
-            {/* Project Image with CSS group-hover scroll animation */}
+            {/* Project Image with auto scroll-down/up animation on hover */}
             {!imgError && project.imageUrl ? (
-              <div className="absolute inset-0 overflow-hidden transition-all duration-[4000ms] ease-out
-                group-hover:scale-110 group-hover:-translate-y-[15%]">
+              <div className="absolute inset-0 overflow-hidden">
+                {/* The tall screenshot pans top→bottom→top on hover, like a user browsing the site */}
                 <img
                   src={project.imageUrl}
                   alt={name}
                   loading="lazy"
                   onError={() => setImgError(true)}
-                  className="absolute inset-0 w-full h-full object-cover"
+                  className="card-scroll-preview absolute inset-x-0 top-0 w-full h-auto object-top"
                 />
               </div>
             ) : (
@@ -752,7 +736,7 @@ export default function Portfolio() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -16 }}
                 transition={{ duration: 0.3 }}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 md:gap-6"
+                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-7"
               >
                 {currentProjects.map((project, index) => (
                   <ProjectCard
