@@ -63,61 +63,48 @@ export async function POST(request: NextRequest) {
       }
       
       const buffer = await response.arrayBuffer()
-      fs.writeFileSync(rawPng, Buffer.from(buffer))
+      const rawImageBuffer = Buffer.from(buffer)
 
-      // 7) Produce the final images:
-      //    - imageUrl (main.jpg) = the FULL tall screenshot (resized to 800px width).
-      //      The card uses this with the card-scroll-preview animation, so it
-      //      must stay tall to allow top→bottom panning.
-      //    - gallery1/2/3 = three different vertical sections (different parts
-      //      of the site) so the modal shows varied views.
-      const meta = await sharp(rawPng).metadata()
+      const meta = await sharp(rawImageBuffer).metadata()
       const fullW = meta.width || 1280
-      const fullH = meta.height || 8000
+      const fullH = meta.height || 4000
       const targetW = 800
-      // Section height in source pixels — use ~1200px so each crop is a
-      // meaningful chunk (roughly one viewport+), not too thin.
       const sectionH = Math.min(1200, Math.floor(fullH / 4))
-      const slice = async (
-        out: string,
-        topOffset: number,
-      ) => sharp(rawPng)
-        .extract({
-          left: 0,
-          top: Math.max(0, Math.min(topOffset, fullH - sectionH)),
-          width: fullW,
-          height: sectionH,
-        })
+
+      const slice = async (topOffset: number) => {
+        const sliceBuffer = await sharp(rawImageBuffer)
+          .extract({
+            left: 0,
+            top: Math.max(0, Math.min(topOffset, fullH - sectionH)),
+            width: fullW,
+            height: sectionH,
+          })
+          .resize({ width: targetW, withoutEnlargement: true })
+          .jpeg({ quality: 80, progressive: true })
+          .toBuffer()
+        return `data:image/jpeg;base64,${sliceBuffer.toString('base64')}`
+      }
+
+      const mainBuffer = await sharp(rawImageBuffer)
         .resize({ width: targetW, withoutEnlargement: true })
         .jpeg({ quality: 80, progressive: true })
-        .toFile(out)
+        .toBuffer()
+      const mainBase64 = `data:image/jpeg;base64,${mainBuffer.toString('base64')}`
 
-      // imageUrl = full tall screenshot (for the card + scroll animation)
-      await sharp(rawPng)
-        .resize({ width: targetW, withoutEnlargement: true })
-        .jpeg({ quality: 80, progressive: true })
-        .toFile(fullJpg)
-      // Gallery 1 = ~25% down
-      await slice(gallery1Jpg, Math.floor(fullH * 0.25))
-      // Gallery 2 = ~55% down (middle area)
-      await slice(gallery2Jpg, Math.floor(fullH * 0.55))
-      // Gallery 3 = ~80% down (late section, but leave room for footer)
-      await slice(gallery3Jpg, Math.floor(fullH * 0.80))
-
-      // 8) Remove the big raw PNG
-      try { fs.unlinkSync(rawPng) } catch {}
+      const g1Base64 = await slice(Math.floor(fullH * 0.25))
+      const g2Base64 = await slice(Math.floor(fullH * 0.55))
+      const g3Base64 = await slice(Math.floor(fullH * 0.80))
 
       return NextResponse.json({
         success: true,
-        path: fullPath,
-        imageUrl: fullPath,
-        gallery1: g1Path,
-        gallery2: g2Path,
-        gallery3: g3Path,
+        path: mainBase64,
+        imageUrl: mainBase64,
+        gallery1: g1Base64,
+        gallery2: g2Base64,
+        gallery3: g3Base64,
       })
     } finally {
-      // Cleanup raw file if it still exists after an error
-      try { if (fs.existsSync(rawPng)) fs.unlinkSync(rawPng) } catch {}
+      // Nothing to cleanup since we operate entirely in memory now
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'unknown error'
