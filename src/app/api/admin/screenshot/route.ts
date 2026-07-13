@@ -54,58 +54,16 @@ export async function POST(request: NextRequest) {
     }
 
     try {
-      // 1) Open the target URL in an isolated agent-browser session
-      await run(`agent-browser --session ${session} open "${url}"`, 45000)
-
-      // 1.5) Emulate the chosen color scheme (light/dark) before any rendering.
-      //      This makes prefers-color-scheme CSS resolve correctly for sites
-      //      that respect it.
-      await run(`agent-browser --session ${session} set media ${colorMode}`, 10000)
-
-      // 1.6) Force dark mode for sites that DON'T natively support it.
-      //      We inject a CSS filter that inverts colors + rotates hue, while
-      //      preserving images/videos (so photos stay natural). This works
-      //      on any website regardless of its dark-mode support.
-      if (colorMode === 'dark') {
-        // First try the native approach (works on sites that use color-scheme)
-        // Then add a forced CSS filter as a fallback for sites that ignore it.
-        const darkCss = [
-          'html { filter: invert(1) hue-rotate(180deg) !important; background: #000 !important; }',
-          'img, video, picture, canvas, svg, iframe { filter: invert(1) hue-rotate(180deg) !important; }',
-          // Keep text-readable: some sites have dark backgrounds that would become light
-          '[style*="background"], [style*="background-color"] { background-color: transparent !important; }',
-        ].join(' ')
-        const injectScript = `(function(){const s=document.createElement('style');s.id='__forced_dark__';s.textContent=${JSON.stringify(darkCss)};(document.head||document.documentElement).appendChild(s);return 'injected'})()`
-        await run(
-          `agent-browser --session ${session} eval "${injectScript.replace(/"/g, '\\"')}"`,
-          15000
-        )
+      // Fetch screenshot using a free external API (Thum.io)
+      const fetchUrl = `https://image.thum.io/get/width/1280/crop/4000/${url}`
+      const response = await fetch(fetchUrl)
+      
+      if (!response.ok) {
+        throw new Error('Failed to capture screenshot from external service')
       }
-
-      // 2) Wait a bit for initial render (and for the dark CSS to apply)
-      await new Promise((r) => setTimeout(r, 3500))
-
-      // 3) Scroll through the entire page so all lazy-loaded images load
-      //    Returns after finishing the full scroll loop.
-      await run(
-        `agent-browser --session ${session} eval "(async()=>{const t=document.body.scrollHeight;const s=window.innerHeight;for(let y=0;y<=t;y+=s){window.scrollTo(0,y);await new Promise(r=>setTimeout(r,500))}window.scrollTo(0,0);return 'ok'})()"`,
-        90000
-      )
-
-      // 4) Let images finish decoding
-      await new Promise((r) => setTimeout(r, 2500))
-
-      // 5) Set a desktop-like viewport for a realistic preview
-      await run(`agent-browser --session ${session} set viewport 1280 800`, 10000)
-
-      // 5.5) Extra settle delay before capturing the tall screenshot.
-      //      Gives late-loading content (fonts, web fonts, async widgets,
-      //      third-party embeds) time to render so the screenshot isn't
-      //      missing pieces.
-      await new Promise((r) => setTimeout(r, 5000))
-
-      // 6) Capture full-page screenshot
-      await run(`agent-browser --session ${session} screenshot --full "${rawPng}"`, 45000)
+      
+      const buffer = await response.arrayBuffer()
+      fs.writeFileSync(rawPng, Buffer.from(buffer))
 
       // 7) Produce the final images:
       //    - imageUrl (main.jpg) = the FULL tall screenshot (resized to 800px width).
@@ -158,10 +116,6 @@ export async function POST(request: NextRequest) {
         gallery3: g3Path,
       })
     } finally {
-      // Always close the session to free the browser process
-      try {
-        await execAsync(`agent-browser --session ${session} close`, { timeout: 10000 })
-      } catch {}
       // Cleanup raw file if it still exists after an error
       try { if (fs.existsSync(rawPng)) fs.unlinkSync(rawPng) } catch {}
     }
