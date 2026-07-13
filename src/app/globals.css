@@ -422,15 +422,16 @@ html {
 }
 
 /* Scroll animation for portfolio previews */
-.card-scroll-preview {
-  animation: card-scroll-preview 8s ease-in-out infinite alternate;
+.group:hover .card-scroll-preview {
+  animation: cardScroll 16s cubic-bezier(.45, 0, .55, 1) infinite;
   transform-origin: top center;
 }
 
-@keyframes card-scroll-preview {
-  0% { transform: translateY(0); }
-  50% { transform: translateY(-10%); }
-  100% { transform: translateY(-20%); }
+@keyframes cardScroll {
+  0%   { transform: translateY(0); }
+  45%  { transform: translateY(-88%); }
+  55%  { transform: translateY(-88%); }
+  100% { transform: translateY(0); }
 }
 
 /* Corner accent on cyber cards */
