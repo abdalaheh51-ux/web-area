@@ -355,12 +355,14 @@ function ProjectModal({
         <div className={`relative aspect-[21/9] bg-gradient-to-br ${project.gradient} overflow-hidden rounded-t-2xl`}>
           <Icon className="absolute inset-0 m-auto size-24 opacity-15" />
           {!modalImgError && project.imageUrl && (
-            <img
-              src={project.imageUrl}
-              alt={name}
-              onError={() => setModalImgError(true)}
-              className="absolute inset-0 w-full h-full object-cover"
-            />
+            <div className="absolute inset-0 overflow-hidden">
+              <img
+                src={project.imageUrl}
+                alt={name}
+                onError={() => setModalImgError(true)}
+                className="modal-scroll-preview absolute inset-x-0 top-0 w-full h-auto object-top"
+              />
+            </div>
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-[#08122640] to-transparent" />
           {project.externalUrl && (

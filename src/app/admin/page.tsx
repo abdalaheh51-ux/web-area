@@ -237,6 +237,7 @@ function PortfolioForm({ item, onSave, onCancel, dir }: {
     gallery1: string
     gallery2: string
     gallery3: string
+    gallery4?: string
   } | null> => {
     if (!url) return null
     const rtl = dir === 'rtl'
@@ -260,6 +261,7 @@ function PortfolioForm({ item, onSave, onCancel, dir }: {
           gallery1: data.gallery1,
           gallery2: data.gallery2,
           gallery3: data.gallery3,
+          gallery4: data.gallery4,
         }
       }
       toast({
