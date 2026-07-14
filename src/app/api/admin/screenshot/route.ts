@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getCurrentUser } from '@/lib/auth'
-import path from 'path'
-import fs from 'fs'
 import sharp from 'sharp'
-import { chromium } from 'playwright'
+import { chromium } from 'playwright-core'
 
 export const maxDuration = 120 // allow up to 2 minutes for screenshot capture
 
@@ -21,22 +19,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'A valid http(s) URL is required' }, { status: 400 })
     }
     
-    // Validate the optional color-scheme mode (default: light)
     const colorMode = mode === 'dark' ? 'dark' : 'light'
-
     const BROWSERLESS_TOKEN = process.env.BROWSERLESS_TOKEN;
-    
-    if (BROWSERLESS_TOKEN) {
-      // Connect to Browserless.io (Cloud Browser)
-      browser = await chromium.connectOverCDP(
-        `wss://chrome.browserless.io?token=${BROWSERLESS_TOKEN}`
-      );
-    } else {
-      // Fallback to local browser (for development)
-      browser = await chromium.launch({
-        args: ['--no-sandbox', '--disable-setuid-sandbox']
-      });
+
+    if (!BROWSERLESS_TOKEN) {
+      return NextResponse.json({ 
+        error: 'Cloud browser token (BROWSERLESS_TOKEN) is missing in environment variables.' 
+      }, { status: 500 });
     }
+
+    // Connect to Browserless.io (Cloud Browser) - This works perfectly on Vercel
+    browser = await chromium.connectOverCDP(
+      `wss://chrome.browserless.io?token=${BROWSERLESS_TOKEN}`
+    );
     
     const context = await browser.newContext({
       viewport: { width: 1280, height: 800 },
@@ -46,16 +41,16 @@ export async function POST(request: NextRequest) {
 
     const page = await context.newPage();
     
-    // Set preferred color scheme via JS as well to be sure
+    // Set preferred color scheme
     await page.emulateMedia({ colorScheme: colorMode as 'light' | 'dark' });
 
     // Navigate to URL
     await page.goto(url, { waitUntil: 'networkidle', timeout: 60000 });
     
-    // Wait a bit for animations/dynamic content
+    // Wait for animations
     await page.waitForTimeout(2000);
 
-    // Force color scheme via CSS injection if needed
+    // Force color scheme via CSS
     await page.addStyleTag({
       content: `
         :root { color-scheme: ${colorMode} !important; }
@@ -80,7 +75,6 @@ export async function POST(request: NextRequest) {
       });
     });
 
-    // Wait for stability after scroll
     await page.waitForTimeout(1000);
 
     // Take full page screenshot
@@ -91,7 +85,6 @@ export async function POST(request: NextRequest) {
     const fullH = meta.height || 800;
     const targetW = 1000;
     
-    // Slice into 4 sections for gallery
     const sectionH = Math.floor(fullH / 4);
     
     const slice = async (topOffset: number) => {
@@ -108,7 +101,7 @@ export async function POST(request: NextRequest) {
       return `data:image/jpeg;base64,${sliceBuffer.toString('base64')}`;
     };
 
-    // Main image is the FULL tall screenshot for the scroll animation
+    // Main image is the FULL tall screenshot
     const mainBuffer = await sharp(fullPageBuffer)
       .resize({ width: targetW, withoutEnlargement: true })
       .jpeg({ quality: 80, progressive: true })
@@ -118,19 +111,15 @@ export async function POST(request: NextRequest) {
     const g1Base64 = await slice(0);
     const g2Base64 = await slice(Math.floor(fullH * 0.33));
     const g3Base64 = await slice(Math.floor(fullH * 0.66));
-    // We only need 3 gallery slots in the current schema, but user asked for 4. 
-    // The 4th one will be the main one or we can add it to the response.
-    const g4Base64 = await slice(fullH - sectionH);
 
     await browser.close();
 
     return NextResponse.json({
       success: true,
-      imageUrl: mainBase64, // FULL TALL IMAGE
+      imageUrl: mainBase64,
       gallery1: g1Base64,
       gallery2: g2Base64,
       gallery3: g3Base64,
-      gallery4: g4Base64, // Optional if schema supports it later
     });
 
   } catch (error) {
@@ -138,7 +127,7 @@ export async function POST(request: NextRequest) {
     const message = error instanceof Error ? error.message : 'unknown error'
     console.error('Screenshot error:', error);
     return NextResponse.json(
-      { error: 'Screenshot capture failed: ' + message },
+      { error: 'Cloud screenshot capture failed: ' + message },
       { status: 500 }
     )
   }
