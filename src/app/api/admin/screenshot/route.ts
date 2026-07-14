@@ -24,9 +24,19 @@ export async function POST(request: NextRequest) {
     // Validate the optional color-scheme mode (default: light)
     const colorMode = mode === 'dark' ? 'dark' : 'light'
 
-    browser = await chromium.launch({
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
-    });
+    const BROWSERLESS_TOKEN = process.env.BROWSERLESS_TOKEN;
+    
+    if (BROWSERLESS_TOKEN) {
+      // Connect to Browserless.io (Cloud Browser)
+      browser = await chromium.connectOverCDP(
+        `wss://chrome.browserless.io?token=${BROWSERLESS_TOKEN}`
+      );
+    } else {
+      // Fallback to local browser (for development)
+      browser = await chromium.launch({
+        args: ['--no-sandbox', '--disable-setuid-sandbox']
+      });
+    }
     
     const context = await browser.newContext({
       viewport: { width: 1280, height: 800 },
