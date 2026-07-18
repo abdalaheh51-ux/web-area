@@ -21,6 +21,7 @@ import { useLanguage } from '@/hooks/use-language'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/use-auth'
 import { useTheme } from 'next-themes'
+import { useAutoTranslateDebounced } from '@/hooks/use-auto-translate-debounced'
 import { useSyncExternalStore } from 'react'
 import Footer from '@/components/sections/footer'
 import AuthModal from '@/components/auth-modal'
@@ -86,8 +87,11 @@ function PortfolioForm({ item, onSave, onCancel, dir }: {
   dir: 'rtl' | 'ltr'
 }) {
   const { toast } = useToast()
+  const { debouncedTranslate, isTranslating } = useAutoTranslateDebounced(1000)
   const [formTab, setFormTab] = useState<'basic' | 'details' | 'images'>('basic')
   const [uploadingField, setUploadingField] = useState<string | null>(null)
+  const [translatingFields, setTranslatingFields] = useState<Record<string, boolean>>({})
+  
   const [formData, setFormData] = useState({
     name: item?.name || '',
     nameEn: item?.nameEn || '',
@@ -111,13 +115,25 @@ function PortfolioForm({ item, onSave, onCancel, dir }: {
 
   const update = (field: string, value: string | number) => setFormData(prev => ({ ...prev, [field]: value }))
 
-  // Auto-fill English from Arabic if empty
+  // Auto-translate English from Arabic
   const updateWithAutoEn = (arField: string, enField: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [arField]: value,
-      ...(prev[enField as keyof typeof prev] === '' && value ? { [enField]: value } : {}),
-    }))
+    // تحديث الحقل العربي فوراً
+    setFormData(prev => ({ ...prev, [arField]: value }))
+    
+    // إذا كان النص فارغاً، نفرغ الحقل الإنجليزي أيضاً
+    if (!value.trim()) {
+      setFormData(prev => ({ ...prev, [enField]: '' }))
+      return
+    }
+
+    // تشغيل الترجمة التلقائية المجدولة
+    setTranslatingFields(prev => ({ ...prev, [enField]: true }))
+    debouncedTranslate(value, (translated) => {
+      if (translated) {
+        setFormData(prev => ({ ...prev, [enField]: translated }))
+      }
+      setTranslatingFields(prev => ({ ...prev, [enField]: false }))
+    })
   }
 
   // Auto-suggest image paths from name
@@ -237,7 +253,15 @@ function PortfolioForm({ item, onSave, onCancel, dir }: {
             <Input value={formData.name} onChange={(e) => updateWithAutoEn('name', 'nameEn', e.target.value)} className={inputClass} placeholder={isRtl ? 'مثال: متجر الأناقة' : 'e.g. Al-Anaqa Store'} />
           </div>
           <div className="space-y-1">
-            <label className={labelClass}>{isRtl ? 'الاسم (إنجليزي)' : 'Name (English)'}</label>
+            <div className="flex items-center justify-between">
+              <label className={labelClass}>{isRtl ? 'الاسم (إنجليزي)' : 'Name (English)'}</label>
+              {translatingFields.nameEn && (
+                <div className="flex items-center gap-1 text-[10px] text-primary animate-pulse">
+                  <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                  <span>{isRtl ? 'جاري الترجمة...' : 'Translating...'}</span>
+                </div>
+              )}
+            </div>
             <Input value={formData.nameEn} onChange={(e) => update('nameEn', e.target.value)} className={inputClass} dir="ltr" placeholder="Auto-filled from Arabic" />
           </div>
           <div className="space-y-1">
@@ -245,7 +269,15 @@ function PortfolioForm({ item, onSave, onCancel, dir }: {
             <Textarea value={formData.description} onChange={(e) => updateWithAutoEn('description', 'descriptionEn', e.target.value)} className={inputClass} rows={2} placeholder={isRtl ? 'وصف مختصر للمشروع...' : 'Brief description...'} />
           </div>
           <div className="space-y-1">
-            <label className={labelClass}>{isRtl ? 'الوصف (إنجليزي)' : 'Description (English)'}</label>
+            <div className="flex items-center justify-between">
+              <label className={labelClass}>{isRtl ? 'الوصف (إنجليزي)' : 'Description (English)'}</label>
+              {translatingFields.descriptionEn && (
+                <div className="flex items-center gap-1 text-[10px] text-primary animate-pulse">
+                  <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                  <span>{isRtl ? 'جاري الترجمة...' : 'Translating...'}</span>
+                </div>
+              )}
+            </div>
             <Textarea value={formData.descriptionEn} onChange={(e) => update('descriptionEn', e.target.value)} className={inputClass} rows={2} dir="ltr" placeholder="Auto-filled from Arabic" />
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -291,16 +323,34 @@ function PortfolioForm({ item, onSave, onCancel, dir }: {
           <div className="space-y-1">
             <label className={labelClass}>{isRtl ? 'المشكلة (عربي)' : 'Problem (Arabic)'}</label>
             <Textarea value={formData.problem} onChange={(e) => updateWithAutoEn('problem', 'problemEn', e.target.value)} className={inputClass} rows={2} />
+            {translatingFields.problemEn && (
+              <div className="flex items-center gap-1 text-[10px] text-primary animate-pulse mt-0.5">
+                <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                <span>{isRtl ? 'جاري ترجمة المشكلة...' : 'Translating problem...'}</span>
+              </div>
+            )}
           </div>
           <div className="space-y-1">
             <label className={labelClass}>{isRtl ? 'الحل (عربي)' : 'Solution (Arabic)'}</label>
             <Textarea value={formData.solution} onChange={(e) => updateWithAutoEn('solution', 'solutionEn', e.target.value)} className={inputClass} rows={2} />
+            {translatingFields.solutionEn && (
+              <div className="flex items-center gap-1 text-[10px] text-primary animate-pulse mt-0.5">
+                <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                <span>{isRtl ? 'جاري ترجمة الحل...' : 'Translating solution...'}</span>
+              </div>
+            )}
           </div>
           <div className="space-y-1">
             <label className={labelClass}>{isRtl ? 'النتيجة (عربي)' : 'Result (Arabic)'}</label>
             <Input value={formData.result} onChange={(e) => updateWithAutoEn('result', 'resultEn', e.target.value)} className={inputClass} placeholder={isRtl ? 'مثال: زيادة 65%' : 'e.g. 65% increase'} />
+            {translatingFields.resultEn && (
+              <div className="flex items-center gap-1 text-[10px] text-primary animate-pulse mt-0.5">
+                <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                <span>{isRtl ? 'جاري ترجمة النتيجة...' : 'Translating result...'}</span>
+              </div>
+            )}
           </div>
-          <p className="text-[10px] text-muted-foreground/50">{isRtl ? 'الإنجليزي يتعبأ تلقائياً من العربي' : 'English auto-fills from Arabic'}</p>
+          <p className="text-[10px] text-muted-foreground/50">{isRtl ? 'الإنجليزي يتعبأ ويترجم تلقائياً من العربي' : 'English auto-fills and translates from Arabic'}</p>
         </div>
       )}
 
