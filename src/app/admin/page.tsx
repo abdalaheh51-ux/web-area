@@ -208,6 +208,8 @@ function PortfolioForm({ item, onSave, onCancel, dir }: {
     { value: 'متجر إلكتروني', label: isRtl ? 'متجر إلكتروني' : 'E-Commerce' },
     { value: 'سيستم إداري', label: isRtl ? 'سيستم إداري' : 'Admin System' },
     { value: 'بورتفوليو', label: isRtl ? 'بورتفوليو' : 'Portfolio' },
+    { value: 'صفحة هبوط', label: isRtl ? 'صفحة هبوط' : 'Landing Page' },
+    { value: 'موقع شركات', label: isRtl ? 'موقع شركات' : 'Corporate Website' },
   ]
 
   const techSuggestions = ['Next.js', 'React', 'Tailwind', 'Prisma', 'D3.js', 'Node.js', 'Stripe', 'Framer Motion']
