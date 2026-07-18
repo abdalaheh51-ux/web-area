@@ -320,37 +320,59 @@ function PortfolioForm({ item, onSave, onCancel, dir }: {
       {/* Details Tab */}
       {formTab === 'details' && (
         <div className="space-y-3">
+          {/* Problem */}
           <div className="space-y-1">
             <label className={labelClass}>{isRtl ? 'المشكلة (عربي)' : 'Problem (Arabic)'}</label>
             <Textarea value={formData.problem} onChange={(e) => updateWithAutoEn('problem', 'problemEn', e.target.value)} className={inputClass} rows={2} />
-            {translatingFields.problemEn && (
-              <div className="flex items-center gap-1 text-[10px] text-primary animate-pulse mt-0.5">
-                <Loader2 className="w-2.5 h-2.5 animate-spin" />
-                <span>{isRtl ? 'جاري ترجمة المشكلة...' : 'Translating problem...'}</span>
-              </div>
-            )}
           </div>
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <label className={labelClass}>{isRtl ? 'المشكلة (إنجليزي)' : 'Problem (English)'}</label>
+              {translatingFields.problemEn && (
+                <div className="flex items-center gap-1 text-[10px] text-primary animate-pulse">
+                  <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                  <span>{isRtl ? 'جاري الترجمة...' : 'Translating...'}</span>
+                </div>
+              )}
+            </div>
+            <Textarea value={formData.problemEn} onChange={(e) => update('problemEn', e.target.value)} className={inputClass} rows={2} dir="ltr" placeholder="Auto-filled from Arabic" />
+          </div>
+
+          {/* Solution */}
           <div className="space-y-1">
             <label className={labelClass}>{isRtl ? 'الحل (عربي)' : 'Solution (Arabic)'}</label>
             <Textarea value={formData.solution} onChange={(e) => updateWithAutoEn('solution', 'solutionEn', e.target.value)} className={inputClass} rows={2} />
-            {translatingFields.solutionEn && (
-              <div className="flex items-center gap-1 text-[10px] text-primary animate-pulse mt-0.5">
-                <Loader2 className="w-2.5 h-2.5 animate-spin" />
-                <span>{isRtl ? 'جاري ترجمة الحل...' : 'Translating solution...'}</span>
-              </div>
-            )}
           </div>
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <label className={labelClass}>{isRtl ? 'الحل (إنجليزي)' : 'Solution (English)'}</label>
+              {translatingFields.solutionEn && (
+                <div className="flex items-center gap-1 text-[10px] text-primary animate-pulse">
+                  <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                  <span>{isRtl ? 'جاري الترجمة...' : 'Translating...'}</span>
+                </div>
+              )}
+            </div>
+            <Textarea value={formData.solutionEn} onChange={(e) => update('solutionEn', e.target.value)} className={inputClass} rows={2} dir="ltr" placeholder="Auto-filled from Arabic" />
+          </div>
+
+          {/* Result */}
           <div className="space-y-1">
             <label className={labelClass}>{isRtl ? 'النتيجة (عربي)' : 'Result (Arabic)'}</label>
             <Input value={formData.result} onChange={(e) => updateWithAutoEn('result', 'resultEn', e.target.value)} className={inputClass} placeholder={isRtl ? 'مثال: زيادة 65%' : 'e.g. 65% increase'} />
-            {translatingFields.resultEn && (
-              <div className="flex items-center gap-1 text-[10px] text-primary animate-pulse mt-0.5">
-                <Loader2 className="w-2.5 h-2.5 animate-spin" />
-                <span>{isRtl ? 'جاري ترجمة النتيجة...' : 'Translating result...'}</span>
-              </div>
-            )}
           </div>
-          <p className="text-[10px] text-muted-foreground/50">{isRtl ? 'الإنجليزي يتعبأ ويترجم تلقائياً من العربي' : 'English auto-fills and translates from Arabic'}</p>
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <label className={labelClass}>{isRtl ? 'النتيجة (إنجليزي)' : 'Result (English)'}</label>
+              {translatingFields.resultEn && (
+                <div className="flex items-center gap-1 text-[10px] text-primary animate-pulse">
+                  <Loader2 className="w-2.5 h-2.5 animate-spin" />
+                  <span>{isRtl ? 'جاري الترجمة...' : 'Translating...'}</span>
+                </div>
+              )}
+            </div>
+            <Input value={formData.resultEn} onChange={(e) => update('resultEn', e.target.value)} className={inputClass} dir="ltr" placeholder="Auto-filled from Arabic" />
+          </div>
         </div>
       )}
 
