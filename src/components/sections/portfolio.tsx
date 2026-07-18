@@ -188,8 +188,10 @@ export default function Portfolio() {
         if (activeFilter === 'portfolio') return cat.includes('بورتفوليو') || cat.includes('Portfolio')
         if (activeFilter === 'analytics') return cat.includes('تحليل') || cat.includes('Analytics')
         if (activeFilter === 'admin') return cat.includes('سيستم') || cat.includes('Admin')
+        if (activeFilter === 'landing') return cat.includes('صفحة هبوط') || cat.includes('Landing Page')
+        if (activeFilter === 'corporate') return cat.includes('موقع شركات') || cat.includes('Corporate Website')
         return true
-      })
+      }
 
   const totalPages = Math.max(1, Math.ceil(filteredProjects.length / ITEMS_PER_PAGE))
   const currentProjects = filteredProjects.slice(
@@ -226,7 +228,7 @@ export default function Portfolio() {
 
           {/* Filter Tags */}
           <div className="flex flex-wrap gap-2 justify-center mb-8">
-            {['all', 'ecommerce', 'portfolio', 'analytics', 'admin'].map((tag) => (
+            {['all', 'ecommerce', 'portfolio', 'analytics', 'admin', 'landing', 'corporate'].map((tag) => (
               <button
                 key={tag}
                 onClick={() => handleFilterChange(tag)}
@@ -240,7 +242,9 @@ export default function Portfolio() {
                  tag === 'ecommerce' ? t.casesFilterEcommerce :
                  tag === 'portfolio' ? t.casesFilterPortfolio :
                  tag === 'analytics' ? t.casesFilterAnalytics :
-                 t.casesFilterAdmin}
+                 tag === 'admin' ? t.casesFilterAdmin :
+                 tag === 'landing' ? (isRtl ? 'صفحة هبوط' : 'Landing Page') :
+                 (isRtl ? 'موقع شركات' : 'Corporate Website')}
               </button>
             ))}
           </div>
