@@ -201,7 +201,7 @@ export default function Navbar() {
           </a>
 
           {/* Desktop Navigation - centered links */}
-          <div className="hidden xl:flex items-center gap-3 2xl:gap-5 absolute left-1/2 -translate-x-1/2 max-w-[500px] 2xl:max-w-[600px]">
+          <div className="hidden xl:flex items-center gap-2 2xl:gap-4 absolute left-1/2 -translate-x-1/2 max-w-[45%] 2xl:max-w-[55%] justify-center">
             {navLinks.map((link) => {
               const isActive = activeId === link.href.replace('#', '')
               return (
@@ -228,7 +228,7 @@ export default function Navbar() {
           </div>
 
           {/* Desktop Action Buttons */}
-          <div className="hidden lg:flex items-center gap-1 xl:gap-1.5 2xl:gap-2 shrink-0">
+          <div className="hidden lg:flex items-center gap-1 xl:gap-1 2xl:gap-2 shrink-0 ml-auto">
             {/* Auth Button */}
             {mounted && user ? (
               <button
@@ -316,7 +316,7 @@ export default function Navbar() {
               size="sm"
               onClick={handleStartProject}
               aria-label={t.navStartProject}
-              className="relative overflow-hidden navbar-cta-gradient text-white font-semibold shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-shadow duration-300 px-3 xl:px-4"
+              className="relative overflow-hidden navbar-cta-gradient text-white font-semibold shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-shadow duration-300 px-2 xl:px-3 2xl:px-4"
             >
               {/* Shimmer overlay */}
               <span className="navbar-shimmer absolute inset-0 pointer-events-none" aria-hidden="true" />
@@ -332,13 +332,13 @@ export default function Navbar() {
 
           {/* Mobile Menu */}
           <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger asChild className="xl:hidden">
+            <SheetTrigger asChild className="lg:hidden">
               <Button variant="ghost" size="icon" aria-label={t.navOpenMenu} aria-expanded={open}>
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">{t.navOpenMenu}</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side={sheetSide} className="w-72" dir={dir}>
+            <SheetContent side={sheetSide} className="w-full sm:w-80" dir={dir}>
               <SheetHeader>
                 <SheetTitle className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-full overflow-hidden ring-2 ring-cyan-300/50 shrink-0 nav-logo-glow">
