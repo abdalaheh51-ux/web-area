@@ -191,7 +191,7 @@ export default function Portfolio() {
         if (activeFilter === 'landing') return cat.includes('صفحة هبوط') || cat.includes('Landing Page')
         if (activeFilter === 'corporate') return cat.includes('موقع شركات') || cat.includes('Corporate Website')
         return true
-      }
+      })
 
   const totalPages = Math.max(1, Math.ceil(filteredProjects.length / ITEMS_PER_PAGE))
   const currentProjects = filteredProjects.slice(
