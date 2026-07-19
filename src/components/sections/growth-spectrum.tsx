@@ -238,21 +238,25 @@ export default function GrowthSpectrum() {
           </div>
         </motion.div>
 
-        {/* Desktop: 4 columns with horizontal connector line */}
+        {/* Desktop: 4 columns with connector segments in the gaps only */}
         <div className="hidden lg:block relative">
-          {/* Horizontal connector line */}
-          <div className="absolute top-[68px] left-[10%] right-[10%] z-0 pointer-events-none">
-            <div className="h-0.5 w-full rounded-full bg-gradient-to-l from-blue-500 via-blue-600 to-amber-500 opacity-40" />
-            {/* Animated progress dots */}
-            <div className="relative h-0.5 -top-0.5">
-              <motion.div
-                initial={{ width: '0%' }}
-                whileInView={{ width: '100%' }}
-                viewport={{ once: true }}
-                transition={{ duration: 2, delay: 1, ease: 'easeInOut' }}
-                className="h-full rounded-full bg-gradient-to-l from-blue-500 via-blue-600 to-amber-500"
-              />
-            </div>
+          {/* Connector line segments — overlay grid mirrors the card grid so
+              the segments sit precisely inside the gaps between cards and never
+              cross the card faces. Fully responsive at any container width. */}
+          <div className="absolute top-[50px] inset-x-0 z-0 grid grid-cols-4 gap-6 pointer-events-none">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="relative">
+                {i > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, scaleX: 0 }}
+                    whileInView={{ opacity: 0.5, scaleX: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: 0.6 + i * 0.15, ease: 'easeOut' }}
+                    className="absolute top-0 -left-6 w-6 h-0.5 rounded-full bg-gradient-to-l from-blue-500 via-blue-600 to-amber-500"
+                  />
+                )}
+              </div>
+            ))}
           </div>
 
           <motion.div
