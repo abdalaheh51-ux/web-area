@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Mail, Phone, Facebook, ArrowUp, Copy, Check, Instagram, Twitter, Linkedin, MessageCircle } from 'lucide-react'
+import { Mail, Phone, Facebook, ArrowUp, Copy, Check, Instagram, Linkedin, MessageCircle } from 'lucide-react'
 import { useLanguage } from '@/hooks/use-language'
 
 export default function Footer() {
@@ -54,7 +54,6 @@ export default function Footer() {
   const socialLinks = [
     { icon: Facebook, label: 'Facebook', url: 'https://www.facebook.com/profile.php?id=61591312174523', color: 'hover:text-blue-300', glow: 'group-hover:bg-blue-500/30' },
     { icon: Instagram, label: 'Instagram', url: 'https://www.instagram.com/web_erea.2/', color: 'hover:text-pink-300', glow: 'group-hover:bg-pink-500/30' },
-    { icon: Twitter, label: 'Twitter', url: '#', color: 'hover:text-sky-300', glow: 'group-hover:bg-sky-500/30' },
     { icon: Linkedin, label: 'LinkedIn', url: '#', color: 'hover:text-blue-200', glow: 'group-hover:bg-blue-600/30' },
     { icon: MessageCircle, label: 'WhatsApp', url: 'https://wa.me/201141990307', color: 'hover:text-green-300', glow: 'group-hover:bg-green-500/30' },
   ]
