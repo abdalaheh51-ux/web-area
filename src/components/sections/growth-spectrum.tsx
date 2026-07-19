@@ -252,7 +252,7 @@ export default function GrowthSpectrum() {
                     whileInView={{ opacity: 0.5, scaleX: 1 }}
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: 0.6 + i * 0.15, ease: 'easeOut' }}
-                    className="absolute top-0 -left-6 w-6 h-0.5 rounded-full bg-gradient-to-l from-blue-500 via-blue-600 to-amber-500"
+                    className="absolute top-0 -start-6 w-6 h-0.5 rounded-full bg-gradient-to-l from-blue-500 via-blue-600 to-amber-500"
                   />
                 )}
               </div>
