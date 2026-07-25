@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import { OptimizedImage } from '@/components/optimized-image'
 
 interface SectionBackgroundProps {
   /** Variant of the background gradient */
@@ -103,7 +104,7 @@ export default function SectionBackground({
       {/* Watermark image */}
       {watermark && (
         <div className="absolute inset-0 pointer-events-none opacity-[0.02]">
-          <img
+          <OptimizedImage
             src="/footer-bg.png"
             alt=""
             className="w-full h-full object-cover select-none"

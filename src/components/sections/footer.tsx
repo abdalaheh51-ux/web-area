@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { Mail, Phone, Facebook, ArrowUp, Copy, Check, Instagram, Linkedin, MessageCircle } from 'lucide-react'
+import { OptimizedImage } from '@/components/optimized-image'
 import { useLanguage } from '@/hooks/use-language'
 
 export default function Footer() {
@@ -183,7 +184,7 @@ export default function Footer() {
               <div className="flex items-center gap-4 mb-5">
                 <div className="relative w-14 h-14 rounded-full overflow-hidden ring-2 ring-cyan-300/60 shrink-0 footer-logo-glow">
                   <div className="absolute inset-0 rounded-full bg-cyan-400/40 blur-lg" />
-                  <img
+                  <OptimizedImage
                     src="/logo.png"
                     alt="Web Area Logo"
                     className="relative w-full h-full object-cover"

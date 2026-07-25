@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Rocket, ArrowLeft, ChevronDown, Layout, ShoppingBag, BarChart3, Sparkles, Globe, ShoppingCart, TrendingUp, Users, Package, DollarSign, Bell, Search, Menu, Home, BarChart2, Settings, FileText, ChevronLeft, Star, Heart, Eye } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { OptimizedImage } from '@/components/optimized-image'
 import { useLanguage } from '@/hooks/use-language'
 
 // Phase labels - bilingual
@@ -724,7 +725,7 @@ export default function HeroSection() {
               transition={{ delay: 0.2, duration: 0.4 }}
             >
               <div className="w-5 h-5 rounded-full overflow-hidden ring-1 ring-primary/40">
-                <img
+                <OptimizedImage
                   src="/logo.png"
                   alt="Web Area Logo"
                   className="w-full h-full object-cover"

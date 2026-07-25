@@ -3,6 +3,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { OptimizedImage } from '@/components/optimized-image'
 import {
   LayoutDashboard, FileText, MessageSquare, Package,
   Upload, Loader2,
@@ -758,7 +759,7 @@ export default function AdminDashboard() {
             aria-label="Web Area - Home"
           >
             <div className="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-cyan-300/50 nav-logo-glow">
-              <img src="/logo.png" alt="Web Area Logo" className="w-full h-full object-cover" />
+              <OptimizedImage src="/logo.png" alt="Web Area Logo" className="w-full h-full object-cover" />
             </div>
             <span className="text-base font-bold text-foreground whitespace-nowrap group-hover:text-primary transition-colors max-[360px]:hidden">
               Web Area

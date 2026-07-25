@@ -1,3 +1,5 @@
+import { OptimizedImage } from '@/components/optimized-image'
+
 const email = 'webarea2@gmail.com'
 const subject = 'استفسار بخصوص خدمة من Web Area'
 const body = 'أهلاً فريق Web Area، أود الاستفسار عن خدماتكم...'
@@ -36,7 +38,7 @@ export default function GmailRedirectPage() {
           <div className="bg-white/5 border border-white/10 rounded-xl p-6 backdrop-blur-sm shadow-lg">
             <div className="flex flex-col items-center gap-4">
               <div className="w-16 h-16 rounded-full overflow-hidden ring-2 ring-cyan-300/40 bg-white/5 flex items-center justify-center">
-                <img src="/logo.png" alt="Web Area" className="w-10 h-10 object-cover" />
+                <OptimizedImage src="/logo.png" alt="Web Area" className="w-10 h-10 object-cover" />
               </div>
 
               <h1 className="text-xl sm:text-2xl font-semibold">جارٍ إعادة التوجيه إلى البريد</h1>

@@ -7,6 +7,7 @@ import { useLanguage } from '@/hooks/use-language'
 import { useAuth } from '@/hooks/use-auth'
 import AuthModal from '@/components/auth-modal'
 import { Button } from '@/components/ui/button'
+import { OptimizedImage } from '@/components/optimized-image'
 import {
   Sheet,
   SheetTrigger,
@@ -177,7 +178,7 @@ export default function Navbar() {
                   scrolled ? 'w-8 h-8 ring-cyan-400/40' : 'w-10 h-10 ring-cyan-300/50'
                 } group-hover:ring-cyan-300/70 group-hover:scale-110 group-hover:rotate-6`}
               >
-                <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
+                <OptimizedImage src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
               </div>
               <span className={`font-bold text-foreground whitespace-nowrap group-hover:text-primary transition-all duration-300 max-[360px]:hidden ${scrolled ? 'text-base' : 'text-lg'}`}>
                 Web Area
@@ -256,7 +257,7 @@ export default function Navbar() {
                 <SheetHeader>
                   <SheetTitle className="flex items-center gap-2.5">
                     <div className="w-8 h-8 rounded-full overflow-hidden ring-2 ring-cyan-300/50">
-                      <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
+                      <OptimizedImage src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
                     </div>
                     <span>Web Area</span>
                   </SheetTitle>

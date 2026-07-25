@@ -18,6 +18,7 @@ import {
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { OptimizedImage } from '@/components/optimized-image'
 import { useLanguage } from '@/hooks/use-language'
 import SectionBackground from '@/components/section-background'
 import type { TranslationKeys } from '@/lib/i18n'
@@ -315,7 +316,7 @@ export default function Portfolio() {
                         >
                           <Icon className="size-16 text-foreground/20 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6" />
                           {!hasImgError && project.imageUrl && (
-                            <img
+                            <OptimizedImage
                               src={project.imageUrl}
                               alt={projectName}
                               loading="lazy"
@@ -408,7 +409,7 @@ export default function Portfolio() {
                   return <MainIcon className="size-20 text-foreground/25" />
                 })()}
                 {!modalImgError && selectedProject.imageUrl && (
-                  <img
+                  <OptimizedImage
                     src={selectedProject.imageUrl}
                     alt={getProjectName(selectedProject)}
                     onError={() => setModalImgError(true)}
@@ -458,7 +459,7 @@ export default function Portfolio() {
                         >
                           <GalleryIcon className="size-6 text-foreground/20" />
                           {!hasError && (
-                            <img
+                            <OptimizedImage
                               src={n === 1 ? (selectedProject.gallery1 || `/projects/${selectedProject.id}-1.png`) : n === 2 ? (selectedProject.gallery2 || `/projects/${selectedProject.id}-2.png`) : (selectedProject.gallery3 || `/projects/${selectedProject.id}-3.png`)}
                               alt={`${getProjectName(selectedProject)} - ${n}`}
                               loading="lazy"

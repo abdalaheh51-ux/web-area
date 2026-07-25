@@ -12,7 +12,8 @@
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
     "db:seed-admin": "bun run scripts/seed-admin.ts",
-    "db:rotate-admin": "bun run scripts/rotate-admin.js"
+    "db:rotate-admin": "bun run scripts/rotate-admin.js",
+    "convert-images": "node scripts/convert-public-images.js"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

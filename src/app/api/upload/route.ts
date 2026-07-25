@@ -6,7 +6,10 @@ import { NextRequest, NextResponse } from 'next/server';
 export const runtime = 'nodejs';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
-const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif'];
+const MAX_IMAGE_WIDTH = 1920;
+const MAX_IMAGE_HEIGHT = 1080;
+const OUTPUT_QUALITY = 75;
 
 export async function POST(request: NextRequest) {
   try {
@@ -22,11 +25,25 @@ export async function POST(request: NextRequest) {
     const fileSize = (typeof (file as any).size === 'number') ? (file as any).size : undefined;
 
     if (fileSize !== undefined && fileSize > MAX_FILE_SIZE) {
-      return NextResponse.json({ success: false, error: 'File is too large. Max 5MB allowed' }, { status: 413 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'File is too large',
+          details: `Maximum file size is 5MB, but uploaded ${(fileSize / 1024 / 1024).toFixed(2)}MB`,
+        },
+        { status: 413 }
+      );
     }
 
     if (fileType && !ALLOWED_TYPES.includes(fileType)) {
-      return NextResponse.json({ success: false, error: 'Only image files are allowed' }, { status: 400 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Only image files are allowed',
+          details: `Allowed types: JPEG, PNG, WebP, GIF, AVIF. Received ${fileType}`,
+        },
+        { status: 400 }
+      );
     }
 
     let bytes;
@@ -37,21 +54,52 @@ export async function POST(request: NextRequest) {
     }
 
     const buffer = Buffer.from(bytes);
+    let outputBuffer: Buffer;
+    let metadata;
 
-    // Convert to JPEG using sharp
-    let jpgBuffer: Buffer;
     try {
-      jpgBuffer = await sharp(buffer)
-        .jpeg({ quality: 85, mozjpeg: true })
+      const image = sharp(buffer, { animated: fileType === 'image/gif' });
+      metadata = await image.metadata();
+
+      if (!metadata.width || !metadata.height || metadata.width < 400 || metadata.height < 300) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Image dimensions too small',
+            details: `Minimum dimensions are 400x300px, but image is ${metadata.width || 0}x${metadata.height || 0}px`,
+          },
+          { status: 400 }
+        );
+      }
+
+      outputBuffer = await image
+        .resize(MAX_IMAGE_WIDTH, MAX_IMAGE_HEIGHT, {
+          fit: 'inside',
+          withoutEnlargement: true,
+        })
+        .webp({
+          quality: OUTPUT_QUALITY,
+          alphaQuality: 90,
+          effort: 4,
+          smartSubsample: true,
+          nearLossless: false,
+          animated: fileType === 'image/gif',
+        })
         .toBuffer();
     } catch (sharpErr) {
       console.error('sharp conversion failed', sharpErr);
-      return NextResponse.json({ success: false, error: 'Failed to convert image to JPEG' }, { status: 500 });
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Failed to process image',
+          details: sharpErr instanceof Error ? sharpErr.message : 'Unknown sharp error',
+        },
+        { status: 500 }
+      );
     }
 
-    const safeName = `${type}-${Date.now()}-${crypto.randomUUID()}.jpg`;
+    const safeName = `${type}-${Date.now()}-${crypto.randomUUID()}.webp`;
 
-    // ── Supabase Storage ──────────────────────────────────────────────────────
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     const bucket = process.env.SUPABASE_STORAGE_BUCKET || 'uploads';
@@ -61,22 +109,33 @@ export async function POST(request: NextRequest) {
 
       const { error } = await supabase.storage
         .from(bucket)
-        .upload(safeName, jpgBuffer, {
-          contentType: 'image/jpeg',
+        .upload(safeName, outputBuffer, {
+          contentType: 'image/webp',
           upsert: true,
         });
 
       if (error) {
         console.error('Supabase Storage upload error', error);
-        return NextResponse.json({ success: false, error: 'Supabase Storage upload failed', details: error.message }, { status: 500 });
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Supabase Storage upload failed',
+            details: error.message,
+          },
+          { status: 500 }
+        );
       }
 
       const { data: publicData } = supabase.storage.from(bucket).getPublicUrl(safeName);
 
-      return NextResponse.json({ success: true, url: publicData.publicUrl, name: safeName });
+      return NextResponse.json({
+        success: true,
+        url: publicData.publicUrl,
+        name: safeName,
+        originalDimensions: metadata ? `${metadata.width}x${metadata.height}` : 'unknown',
+      });
     }
 
-    // ── Cloudinary fallback ───────────────────────────────────────────────────
     const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
     const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET;
     const apiKey = process.env.CLOUDINARY_API_KEY;
@@ -86,7 +145,7 @@ export async function POST(request: NextRequest) {
       try {
         const cloudUrl = `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`;
         const fd = new FormData();
-        const blob = new Blob([jpgBuffer], { type: 'image/jpeg' });
+        const blob = new Blob([outputBuffer], { type: 'image/webp' });
         fd.append('file', blob, safeName);
 
         if (uploadPreset) {
@@ -102,19 +161,40 @@ export async function POST(request: NextRequest) {
         const resp = await fetch(cloudUrl, { method: 'POST', body: fd });
         const json = await resp.json();
         if (!resp.ok) {
-          return NextResponse.json({ success: false, error: 'Cloudinary upload failed', details: json }, { status: 500 });
+          return NextResponse.json(
+            {
+              success: false,
+              error: 'Cloudinary upload failed',
+              details: json,
+            },
+            { status: 500 }
+          );
         }
-        return NextResponse.json({ success: true, url: json.secure_url || json.url, name: json.public_id });
+        return NextResponse.json({
+          success: true,
+          url: json.secure_url || json.url,
+          name: json.public_id,
+          originalDimensions: metadata ? `${metadata.width}x${metadata.height}` : 'unknown',
+        });
       } catch (err) {
-        return NextResponse.json({ success: false, error: 'Cloudinary upload failed', details: err instanceof Error ? err.message : String(err) }, { status: 500 });
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Cloudinary upload failed',
+            details: err instanceof Error ? err.message : String(err),
+          },
+          { status: 500 }
+        );
       }
     }
 
-    return NextResponse.json({
-      success: false,
-      error: 'No storage configured. Add NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to your environment variables.',
-    }, { status: 500 });
-
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'No storage configured. Add NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY to your environment variables.',
+      },
+      { status: 500 }
+    );
   } catch (error) {
     console.error('Upload error:', error);
     return NextResponse.json({ success: false, error: 'Failed to upload image' }, { status: 500 });
