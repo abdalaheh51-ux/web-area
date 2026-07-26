@@ -579,13 +579,21 @@ function PortfolioVisual() {
 function DigitalTransformationVisual() {
   const { dir } = useLanguage()
   const [phase, setPhase] = useState(0)
+  const [isReady, setIsReady] = useState(false)
 
   useEffect(() => {
-    const interval = setInterval(() => {
+    const timer = window.setTimeout(() => setIsReady(true), 800)
+    return () => window.clearTimeout(timer)
+  }, [])
+
+  useEffect(() => {
+    if (!isReady) return
+
+    const interval = window.setInterval(() => {
       setPhase((prev) => (prev + 1) % 4)
     }, 4000)
-    return () => clearInterval(interval)
-  }, [])
+    return () => window.clearInterval(interval)
+  }, [isReady])
 
   return (
     <div className="relative w-full max-w-md mx-auto">
@@ -596,14 +604,17 @@ function DigitalTransformationVisual() {
       <motion.div
         className="relative rounded-2xl border border-border/40 bg-card/80 backdrop-blur-md overflow-hidden shadow-2xl"
         style={{ aspectRatio: '3/4' }}
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: isReady ? 1 : 0, y: isReady ? 0 : 16 }}
+        transition={{ duration: 0.5, ease: 'easeOut', delay: 0.2 }}
         layout
       >
         {/* Animated visual content */}
         <AnimatePresence mode="wait">
-          {phase === 0 && <LandingPageVisual key="landing" />}
-          {phase === 1 && <StorefrontVisual key="store" />}
-          {phase === 2 && <DashboardVisual key="dashboard" />}
-          {phase === 3 && <PortfolioVisual key="portfolio" />}
+          {isReady && phase === 0 && <LandingPageVisual key="landing" />}
+          {isReady && phase === 1 && <StorefrontVisual key="store" />}
+          {isReady && phase === 2 && <DashboardVisual key="dashboard" />}
+          {isReady && phase === 3 && <PortfolioVisual key="portfolio" />}
         </AnimatePresence>
       </motion.div>
 
