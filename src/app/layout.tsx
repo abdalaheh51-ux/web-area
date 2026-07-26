@@ -56,7 +56,16 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         {/* Favicons explicitly declared for crawlers */}
         <link rel="icon" href="/favicon-a.png" sizes="48x48" type="image/png" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-        
+        <link
+          rel="preload"
+          href="/css/secondary.css"
+          as="style"
+          onLoad="this.rel='stylesheet'"
+        />
+        <noscript>
+          <link rel="stylesheet" href="/css/secondary.css" />
+        </noscript>
+
         {/* Site Name Schema for Google Search */}
         <script
           type="application/ld+json"
