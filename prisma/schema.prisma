@@ -55,6 +55,7 @@ model Lead {
 model VisitorComment {
   id         String   @id @default(cuid())
   name       String?
+  email      String?
   comment    String
   rating     Int      @default(5)
   createdAt  DateTime @default(now())

@@ -33,6 +33,7 @@ import {
 } from 'lucide-react'
 import { useLanguage } from '@/hooks/use-language'
 import { useToast } from '@/hooks/use-toast'
+import { useAuth } from '@/hooks/use-auth'
 import type { TranslationKeys } from '@/lib/i18n'
 
 // ─── Interfaces ───────────────────────────────────────────────────
@@ -131,6 +132,7 @@ function FieldBadge({
 export default function ProjectBuilder() {
   const { t, dir } = useLanguage()
   const { toast } = useToast()
+  const { user } = useAuth()
   const isRTL = dir === 'rtl'
 
   const [stage, setStage] = useState<number>(1)
@@ -162,6 +164,15 @@ export default function ProjectBuilder() {
       /* ignore */
     }
   }, [data, hydrated])
+
+  useEffect(() => {
+    if (!user) return
+    setData((prev) => ({
+      ...prev,
+      name: prev.name.trim() ? prev.name : user.name?.trim() || user.email.split('@')[0],
+      email: prev.email.trim() ? prev.email : user.email,
+    }))
+  }, [user])
 
   const update = <K extends keyof ProjectData>(field: K, value: ProjectData[K]) => {
     setData((prev) => ({ ...prev, [field]: value }))
@@ -211,6 +222,11 @@ export default function ProjectBuilder() {
   const handlePrev = () => setStage((s) => Math.max(1, s - 1))
 
   const handleSubmit = async () => {
+    if (!user) {
+      toast({ title: t.commentsLoginRequiredTitle, description: t.commentsLoginRequiredDesc, variant: 'destructive' })
+      return
+    }
+
     if (!data.contactMethod) {
       toast({ title: t.pbErrContactMethod, variant: 'destructive' })
       return

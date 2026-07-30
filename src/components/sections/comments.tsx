@@ -11,6 +11,8 @@ import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useToast } from '@/hooks/use-toast'
 import { useLanguage } from '@/hooks/use-language'
+import { useAuth } from '@/hooks/use-auth'
+import AuthModal from '@/components/auth-modal'
 import SectionBackground from '@/components/section-background'
 
 const MAX_COMMENT_LENGTH = 500
@@ -26,6 +28,7 @@ interface VisitorComment {
 export default function Comments() {
   const { t, dir } = useLanguage()
   const { toast } = useToast()
+  const { user, loading: authLoading } = useAuth()
 
   const [name, setName] = useState('')
   const [comment, setComment] = useState('')
@@ -35,6 +38,7 @@ export default function Comments() {
 
   const [comments, setComments] = useState<VisitorComment[]>([])
   const [loading, setLoading] = useState(true)
+  const [authOpen, setAuthOpen] = useState(false)
 
   // Filter & pagination state
   const [filterBy, setFilterBy] = useState<'recent' | 'top'>('recent')
@@ -63,13 +67,41 @@ export default function Comments() {
     fetchComments()
   }, [fetchComments])
 
+  useEffect(() => {
+    if (user && !name.trim()) {
+      const fallback = user.name?.trim() || user.email.split('@')[0]
+      setName(fallback)
+    }
+  }, [user, name])
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const trimmed = comment.trim()
+    const trimmedName = name.trim()
+
     if (!trimmed) {
       toast({
         title: t.commentsErrorTitle,
         description: t.commentsTextPlaceholder,
+        variant: 'destructive',
+      })
+      return
+    }
+
+    if (!user) {
+      toast({
+        title: t.commentsLoginRequiredTitle,
+        description: t.commentsLoginRequiredDesc,
+        variant: 'destructive',
+      })
+      setAuthOpen(true)
+      return
+    }
+
+    if (!trimmedName) {
+      toast({
+        title: t.commentsErrorTitle,
+        description: t.commentsNamePlaceholder,
         variant: 'destructive',
       })
       return
@@ -81,9 +113,10 @@ export default function Comments() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: name.trim() || null,
+          name: trimmedName,
           comment: trimmed,
           rating,
+          email: user?.email,
         }),
       })
 
@@ -157,6 +190,7 @@ export default function Comments() {
   const displayRating = hoverRating || rating
   const charCount = comment.length
   const isOverLimit = charCount > MAX_COMMENT_LENGTH
+  const canSubmit = Boolean(user) && !submitting && !isOverLimit && !!comment.trim() && !!name.trim()
 
   return (
     <section
@@ -186,13 +220,28 @@ export default function Comments() {
             </motion.div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Name input (optional) */}
+              {!authLoading && !user && (
+                <div className="rounded-xl border border-amber-500/20 bg-amber-500/10 p-3 text-sm text-amber-700 dark:text-amber-300">
+                  <p className="font-semibold">{t.commentsLoginRequiredTitle}</p>
+                  <p className="mt-1">{t.commentsLoginRequiredDesc}</p>
+                  <Button type="button" variant="outline" size="sm" className="mt-3" onClick={() => setAuthOpen(true)}>
+                    {t.commentsSignInButton}
+                  </Button>
+                </div>
+              )}
+
+              {user && (
+                <div className="rounded-xl border border-primary/20 bg-primary/5 p-3 text-sm">
+                  <p className="font-semibold text-foreground">{t.commentsIdentityHint}</p>
+                  <p className="mt-1 text-muted-foreground">{user.name || user.email}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{t.commentsEmailAutoLabel}: {user.email}</p>
+                </div>
+              )}
+
               <div className="space-y-1.5">
                 <Label htmlFor="comment-name" className="text-sm font-medium">
                   {t.commentsNameLabel}
-                  <span className="text-muted-foreground font-normal text-xs mr-1">
-                    ({t.pbOptional})
-                  </span>
+                  <span className="text-rose-500 mr-1">*</span>
                 </Label>
                 <Input
                   id="comment-name"
@@ -200,7 +249,7 @@ export default function Comments() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder={t.commentsNamePlaceholder}
-                  disabled={submitting}
+                  disabled={submitting || authLoading}
                   maxLength={80}
                   className={dir === 'rtl' ? 'text-right' : 'text-left'}
                 />
@@ -280,7 +329,7 @@ export default function Comments() {
               {/* Submit button (gradient bg from-blue-600 to-blue-500) */}
               <Button
                 type="submit"
-                disabled={submitting || isOverLimit || !comment.trim()}
+                disabled={submitting || isOverLimit || !canSubmit}
                 size="lg"
                 className="w-full bg-gradient-to-l from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-bold text-base h-12 rounded-xl shadow-lg shadow-blue-500/20 transition-all duration-300 disabled:opacity-60 disabled:shadow-none"
               >
@@ -307,6 +356,8 @@ export default function Comments() {
             </form>
           </CardContent>
         </Card>
+
+        <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
 
         {/* ─── Comments List ─── */}
         <div className="mt-10">
