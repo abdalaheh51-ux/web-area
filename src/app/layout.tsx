@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Web Area | نبني حضورك الرقمي",
     description: "نبني حضورك الرقمي.. من صفحة هبوط تخطف الأنظار، إلى نظام ERP يدير شركتك بالكامل.",
-    url: "https://web-area-a.vercel.app/",
+    url: "https://www.webarea.me/",
     siteName: "Web Area",
     images: [
       {
@@ -26,6 +26,12 @@ export const metadata: Metadata = {
         width: 512,
         height: 512,
         alt: "Web Area Logo",
+      },
+      {
+        url: "/apple-touch-icon.png",
+        width: 180,
+        height: 180,
+        alt: "Web Area Apple Touch Icon",
       },
     ],
     locale: "ar",
@@ -39,6 +45,7 @@ export const metadata: Metadata = {
       { url: "/favicon-32x32.png", sizes: "32x32", type: "image/png" },
       { url: "/favicon-16x16.png", sizes: "16x16", type: "image/png" },
       { url: "/favicon-a.png", sizes: "48x48", type: "image/png" },
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
     ],
     shortcut: "/favicon-a.png",
     apple: "/apple-touch-icon.png",
@@ -75,7 +82,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               "@type": "WebSite",
               "name": "Web Area",
               "alternateName": ["ويب اريا", "WebArea"],
-              "url": "https://web-area-a.vercel.app/"
+              "url": "https://www.webarea.me/"
             })
           }}
         />

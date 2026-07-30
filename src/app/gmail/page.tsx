@@ -12,7 +12,7 @@ export const metadata = {
   openGraph: {
     title: email,
     description: 'اضغط لفتح مسودة بريد إلكتروني إلى Web Area',
-    url: 'https://web-area-a.vercel.app/gmail',
+    url: 'https://www.webarea.me/gmail',
     siteName: 'Web Area',
   },
 }
