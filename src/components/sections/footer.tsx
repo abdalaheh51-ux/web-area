@@ -56,7 +56,7 @@ export default function Footer() {
     { icon: Facebook, label: 'Facebook', url: 'https://www.facebook.com/profile.php?id=61591312174523', color: 'hover:text-blue-300', glow: 'group-hover:bg-blue-500/30' },
     { icon: Instagram, label: 'Instagram', url: 'https://www.instagram.com/web__area/', color: 'hover:text-pink-300', glow: 'group-hover:bg-pink-500/30' },
     { icon: Linkedin, label: 'LinkedIn', url: '#', color: 'hover:text-blue-200', glow: 'group-hover:bg-blue-600/30' },
-    { icon: MessageCircle, label: 'WhatsApp', url: 'https://wa.me/201141990307', color: 'hover:text-green-300', glow: 'group-hover:bg-green-500/30' },
+    { icon: MessageCircle, label: 'WhatsApp', url: 'https://wa.me/201127677819', color: 'hover:text-green-300', glow: 'group-hover:bg-green-500/30' },
   ]
 
   const EmailButton = () => {
@@ -288,14 +288,14 @@ export default function Footer() {
                 <li className="group flex items-center gap-2.5">
                   <Phone className="h-4 w-4 shrink-0 text-cyan-300 transition-transform duration-300 group-hover:scale-125" />
                   <a
-                    href="tel:+201141990307"
+                    href="tel:+201127677819"
                     className="text-sm text-primary-foreground/60 transition-colors duration-300 group-hover:text-cyan-200"
                     dir="ltr"
                   >
-                    +20 114 199 0307
+                    +20 112 767 7819
                   </a>
                   <button
-                    onClick={() => copyToClipboard('+201141990307', 'phone')}
+                    onClick={() => copyToClipboard('+201127677819', 'phone')}
                     className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                     aria-label="Copy phone"
                   >
