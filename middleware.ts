@@ -1,16 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getCurrentUser } from '@/lib/auth'
 
 const RATE_LIMIT_WINDOW_MS = 20 * 1000
 const rateLimitStore = new Map<string, number>()
-
-function getExemptEmails() {
-  const raw = process.env.RATE_LIMIT_EXEMPT_EMAILS || ''
-  return raw
-    .split(',')
-    .map((item) => item.trim().toLowerCase())
-    .filter(Boolean)
-}
+const SESSION_COOKIE = 'webarea-session'
 
 function getClientIdentifier(request: NextRequest) {
   const forwardedFor = request.headers.get('x-forwarded-for')
@@ -48,9 +40,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  const user = await getCurrentUser()
-  const exemptEmails = getExemptEmails()
-  const isExempt = Boolean(user?.role === 'admin' || (user?.email && exemptEmails.includes(user.email.toLowerCase())))
+  const isExempt = Boolean(request.cookies.get(SESSION_COOKIE)?.value)
 
   if (isExempt) {
     return NextResponse.next()
@@ -59,7 +49,7 @@ export async function middleware(request: NextRequest) {
   const now = Date.now()
   cleanupExpiredEntries(now)
 
-  const keys = getRateLimitKeys(request, user?.email)
+  const keys = getRateLimitKeys(request)
   const matchingKey = keys.find((key) => {
     const lastRequestAt = rateLimitStore.get(key)
     return lastRequestAt && now - lastRequestAt < RATE_LIMIT_WINDOW_MS
