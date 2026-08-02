@@ -120,7 +120,22 @@ export default function Comments() {
         }),
       })
 
-      if (!res.ok) throw new Error('submit failed')
+      const data = await res.json().catch(() => null)
+
+      if (!res.ok) {
+        const errorMessage = typeof data?.error === 'string' ? data.error : null
+
+        if (res.status === 429) {
+          toast({
+            title: t.commentsRateLimitTitle,
+            description: errorMessage || t.commentsRateLimitDesc,
+            variant: 'destructive',
+          })
+          return
+        }
+
+        throw new Error(errorMessage || 'submit failed')
+      }
 
       toast({
         title: t.commentsSuccessTitle,
@@ -138,6 +153,7 @@ export default function Comments() {
     } catch {
       toast({
         title: t.commentsErrorTitle,
+        description: t.commentsRateLimitDesc,
         variant: 'destructive',
       })
     } finally {

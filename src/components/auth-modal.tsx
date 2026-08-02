@@ -62,6 +62,7 @@ export default function AuthModal({ open, onClose }: { open: boolean; onClose: (
       onClose()
     } else {
       let errorMsg = t.authError
+      let errorDescription: string | undefined
 
       if (result.error === 'Invalid email or password') {
         errorMsg = t.authInvalidCredentials
@@ -69,11 +70,13 @@ export default function AuthModal({ open, onClose }: { open: boolean; onClose: (
         errorMsg = t.authEmailExists
       } else if (result.error === 'Password must be at least 6 characters') {
         errorMsg = t.authPasswordMinLength
-      } else if (result.error && result.error.includes('Too many attempts')) {
-        errorMsg = result.error
+      } else if (result.locked) {
+        const remainingMinutes = result.remainingMinutes ?? 15
+        errorMsg = t.authRateLimitTitle
+        errorDescription = t.authRateLimitDesc.replace('{count}', String(remainingMinutes))
       }
 
-      toast({ title: errorMsg, variant: 'destructive' })
+      toast({ title: errorMsg, description: errorDescription, variant: 'destructive' })
     }
   }
 

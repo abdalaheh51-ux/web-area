@@ -1,26 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth";
-import { checkRateLimit } from "@/lib/rate-limit";
+
+const COMMENT_RATE_LIMIT_WINDOW_MS = 20 * 1000;
 
 export async function POST(request: NextRequest) {
   try {
     const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: "Authentication required" }, { status: 401 });
-    }
-
-    const rateLimit = checkRateLimit({
-      user,
-      endpoint: '/api/comments',
-      identifier: request.headers.get('x-forwarded-for') || undefined,
-    })
-
-    if (!rateLimit.allowed) {
-      return NextResponse.json(
-        { error: `Too many requests. Please wait ${rateLimit.retryAfter}s.` },
-        { status: 429 },
-      )
     }
 
     const body = await request.json();
@@ -39,10 +27,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Registered email required" }, { status: 401 });
     }
 
+    const normalizedEmail = email.trim().toLowerCase();
+    const lastComment = await db.visitorComment.findFirst({
+      where: { email: normalizedEmail },
+      orderBy: { createdAt: "desc" },
+      select: { createdAt: true },
+    });
+
+    if (lastComment) {
+      const elapsedMs = Date.now() - lastComment.createdAt.getTime();
+      if (elapsedMs < COMMENT_RATE_LIMIT_WINDOW_MS) {
+        return NextResponse.json(
+          {
+            error: 'You can post another comment in 20 seconds.',
+          },
+          { status: 429 },
+        );
+      }
+    }
+
     const vc = await db.visitorComment.create({
       data: {
         name: name.trim(),
-        email: email.trim().toLowerCase(),
+        email: normalizedEmail,
         comment: comment.trim(),
         rating: rating || 5,
       },
