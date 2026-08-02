@@ -33,9 +33,6 @@ export async function POST(request: NextRequest) {
     if (!contactMethod) return NextResponse.json({ error: "Contact method required" }, { status: 400 });
     if (!name) return NextResponse.json({ error: "Name required" }, { status: 400 });
     if (!email || !email.includes("@")) return NextResponse.json({ error: "Valid email required" }, { status: 400 });
-    if (email.trim().toLowerCase() !== user.email.toLowerCase()) {
-      return NextResponse.json({ error: "Registered email required" }, { status: 401 });
-    }
     if ((contactMethod === "whatsapp" || contactMethod === "phone") && !phone) return NextResponse.json({ error: "Phone required" }, { status: 400 });
 
     let ref = genRef();
@@ -53,7 +50,7 @@ export async function POST(request: NextRequest) {
         timeline: timeline || null,
         contactMethod,
         name: name.trim(),
-        email: email.trim(),
+        email: user.email,
         phone: phone?.trim() || null,
         bestTime: bestTime || null,
       },

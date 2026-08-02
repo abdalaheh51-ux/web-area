@@ -170,7 +170,7 @@ export default function ProjectBuilder() {
     setData((prev) => ({
       ...prev,
       name: prev.name.trim() ? prev.name : user.name?.trim() || user.email.split('@')[0],
-      email: prev.email.trim() ? prev.email : user.email,
+      email: user.email,
     }))
   }, [user])
 
@@ -233,10 +233,6 @@ export default function ProjectBuilder() {
     }
     if (!data.name.trim()) {
       toast({ title: t.pbErrName, variant: 'destructive' })
-      return
-    }
-    if (!data.email.trim() || !data.email.includes('@')) {
-      toast({ title: t.pbErrEmail, variant: 'destructive' })
       return
     }
     if (
@@ -1273,11 +1269,9 @@ export default function ProjectBuilder() {
                             <Input
                               type="email"
                               value={data.email}
-                              onChange={(e) =>
-                                update('email', e.target.value)
-                              }
                               placeholder={t.pbEmailPlaceholder}
                               className="bg-background"
+                              readOnly
                               dir="ltr"
                             />
                           </div>
