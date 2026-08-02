@@ -13,7 +13,7 @@ interface AuthUser {
 interface AuthContextType {
   user: AuthUser | null
   loading: boolean
-  login: (email: string, password: string) => Promise<{ success: boolean; error?: string; locked?: boolean; remainingMinutes?: number }>
+  login: (email: string, password: string) => Promise<{ success: boolean; error?: string; locked?: boolean; remainingMinutes?: number; remainingSeconds?: number }>
   register: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>
   logout: () => Promise<void>
   refresh: () => Promise<void>
@@ -59,6 +59,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         error: data.error,
         locked: Boolean(data.locked),
         remainingMinutes: typeof data.remainingMinutes === 'number' ? data.remainingMinutes : undefined,
+        remainingSeconds: typeof data.remainingSeconds === 'number' ? data.remainingSeconds : undefined,
       }
     } catch {
       return { success: false, error: 'Network error' }

@@ -4,12 +4,14 @@
 interface AttemptRecord {
   count: number
   firstAttempt: number
+  lastFailedAttemptAt: number
   lockedUntil: number | null
 }
 
 const MAX_ATTEMPTS = 5
 const LOCKOUT_DURATION = 15 * 60 * 1000 // 15 minutes
 const WINDOW_DURATION = 60 * 60 * 1000 // 1 hour tracking window
+const COOLDOWN_DURATION = 20 * 1000 // 20 seconds between failed attempts
 
 const attempts = new Map<string, AttemptRecord>()
 
@@ -27,49 +29,73 @@ export function getRateLimitKey(email: string, ip: string): string {
   return `${email.toLowerCase()}:${ip}`
 }
 
-export function checkRateLimit(key: string): { allowed: boolean; remainingAttempts: number; lockedUntil: number | null } {
+export interface RateLimitStatus {
+  allowed: boolean
+  remainingAttempts: number
+  lockedUntil: number | null
+  retryAfterSeconds: number
+}
+
+export function checkRateLimit(key: string): RateLimitStatus {
   const now = Date.now()
   const record = attempts.get(key)
 
   // No previous attempts - allow
   if (!record) {
-    return { allowed: true, remainingAttempts: MAX_ATTEMPTS, lockedUntil: null }
+    return { allowed: true, remainingAttempts: MAX_ATTEMPTS, lockedUntil: null, retryAfterSeconds: 0 }
   }
 
   // Check if currently locked out
   if (record.lockedUntil && now < record.lockedUntil) {
-    return { allowed: false, remainingAttempts: 0, lockedUntil: record.lockedUntil }
+    return {
+      allowed: false,
+      remainingAttempts: 0,
+      lockedUntil: record.lockedUntil,
+      retryAfterSeconds: Math.max(1, Math.ceil((record.lockedUntil - now) / 1000)),
+    }
   }
 
   // Lockout expired - reset
   if (record.lockedUntil && now >= record.lockedUntil) {
     attempts.delete(key)
-    return { allowed: true, remainingAttempts: MAX_ATTEMPTS, lockedUntil: null }
+    return { allowed: true, remainingAttempts: MAX_ATTEMPTS, lockedUntil: null, retryAfterSeconds: 0 }
   }
 
   // Window expired - reset
   if (now - record.firstAttempt > WINDOW_DURATION) {
     attempts.delete(key)
-    return { allowed: true, remainingAttempts: MAX_ATTEMPTS, lockedUntil: null }
+    return { allowed: true, remainingAttempts: MAX_ATTEMPTS, lockedUntil: null, retryAfterSeconds: 0 }
+  }
+
+  // Apply 20-second cooldown between failed attempts
+  const timeSinceLastFailure = now - record.lastFailedAttemptAt
+  if (timeSinceLastFailure < COOLDOWN_DURATION) {
+    return {
+      allowed: false,
+      remainingAttempts: Math.max(0, MAX_ATTEMPTS - record.count),
+      lockedUntil: null,
+      retryAfterSeconds: Math.max(1, Math.ceil((COOLDOWN_DURATION - timeSinceLastFailure) / 1000)),
+    }
   }
 
   // Still within attempts limit
   if (record.count < MAX_ATTEMPTS) {
-    return { allowed: true, remainingAttempts: MAX_ATTEMPTS - record.count, lockedUntil: null }
+    return { allowed: true, remainingAttempts: MAX_ATTEMPTS - record.count, lockedUntil: null, retryAfterSeconds: 0 }
   }
 
   // Max attempts reached - lock out
-  return { allowed: false, remainingAttempts: 0, lockedUntil: record.lockedUntil }
+  return { allowed: false, remainingAttempts: 0, lockedUntil: record.lockedUntil, retryAfterSeconds: 0 }
 }
 
-export function recordFailedAttempt(key: string): { lockedUntil: number | null; remainingAttempts: number } {
+export function recordFailedAttempt(key: string): { lockedUntil: number | null; remainingAttempts: number; retryAfterSeconds: number } {
   const now = Date.now()
   let record = attempts.get(key)
 
   if (!record || now - record.firstAttempt > WINDOW_DURATION) {
-    record = { count: 1, firstAttempt: now, lockedUntil: null }
+    record = { count: 1, firstAttempt: now, lastFailedAttemptAt: now, lockedUntil: null }
   } else {
     record.count += 1
+    record.lastFailedAttemptAt = now
   }
 
   if (record.count >= MAX_ATTEMPTS) {
@@ -81,6 +107,7 @@ export function recordFailedAttempt(key: string): { lockedUntil: number | null; 
   return {
     lockedUntil: record.lockedUntil,
     remainingAttempts: Math.max(0, MAX_ATTEMPTS - record.count),
+    retryAfterSeconds: record.lockedUntil ? 0 : Math.max(1, Math.ceil(COOLDOWN_DURATION / 1000)),
   }
 }
 
@@ -110,4 +137,5 @@ export const RATE_LIMIT_CONFIG = {
   MAX_ATTEMPTS,
   LOCKOUT_DURATION,
   WINDOW_DURATION,
+  COOLDOWN_DURATION,
 }

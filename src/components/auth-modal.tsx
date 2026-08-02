@@ -71,9 +71,13 @@ export default function AuthModal({ open, onClose }: { open: boolean; onClose: (
       } else if (result.error === 'Password must be at least 6 characters') {
         errorMsg = t.authPasswordMinLength
       } else if (result.locked) {
-        const remainingMinutes = result.remainingMinutes ?? 15
         errorMsg = t.authRateLimitTitle
-        errorDescription = t.authRateLimitDesc.replace('{count}', String(remainingMinutes))
+        if (typeof result.remainingSeconds === 'number' && result.remainingSeconds > 0) {
+          errorDescription = t.authRateLimitSecondsDesc.replace('{count}', String(result.remainingSeconds))
+        } else {
+          const remainingMinutes = result.remainingMinutes ?? 15
+          errorDescription = t.authRateLimitDesc.replace('{count}', String(remainingMinutes))
+        }
       }
 
       toast({ title: errorMsg, description: errorDescription, variant: 'destructive' })

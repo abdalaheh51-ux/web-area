@@ -27,10 +27,15 @@ export async function POST(request: NextRequest) {
       const remainingMinutes = rateLimitStatus.lockedUntil
         ? Math.ceil((rateLimitStatus.lockedUntil - Date.now()) / 60000)
         : 0
+      const remainingSeconds = rateLimitStatus.retryAfterSeconds
+
       return NextResponse.json({
-        error: `Too many attempts. Try again in ${remainingMinutes} minutes.`,
+        error: remainingSeconds > 0
+          ? `Too many attempts. Try again in ${remainingSeconds} seconds.`
+          : `Too many attempts. Try again in ${remainingMinutes} minutes.`,
         locked: true,
-        remainingMinutes,
+        remainingMinutes: remainingMinutes > 0 ? remainingMinutes : undefined,
+        remainingSeconds: remainingSeconds > 0 ? remainingSeconds : undefined,
       }, { status: 429 })
     }
 
